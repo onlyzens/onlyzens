@@ -45,7 +45,6 @@
         .portal-title {
             font-size: 2.5rem; margin-bottom: 2rem; letter-spacing: 2px; font-weight: 800;
             color: var(--accent-purple); text-shadow: 0 0 20px var(--accent-glow-p);
-            animation: slideDownIn 0.8s ease forwards; opacity: 0;
         }
 
         .portal-title span { color: var(--text-main); font-size: 1.2rem; font-weight: 400; margin-left: 10px; }
@@ -54,7 +53,6 @@
             background: var(--panel-dark); border: 1px solid #27272a; padding: 2.5rem;
             border-radius: 20px; width: 100%; max-width: 500px; text-align: center;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-            animation: slideUpIn 0.8s ease forwards; animation-delay: 0.1s; opacity: 0;
         }
 
         .auth-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
@@ -79,32 +77,26 @@
 
         #authOverlay.authenticated { opacity: 0; visibility: hidden; pointer-events: none; }
 
-        /* ⏳ FLOATING TIMER WIDGET */
-        #liveTimerWidget {
-            position: fixed; top: 25px; right: 25px; background: rgba(20, 20, 22, 0.9);
-            border: 1px solid #27272a; backdrop-filter: blur(10px); padding: 0.7rem 1.4rem;
-            border-radius: 40px; display: none; align-items: center; gap: 12px; font-weight: 700;
+        /* ⏳ TOP RIGHT META CONTROLS WIDGET */
+        #metaStatusWidget {
+            position: fixed; top: 25px; right: 25px; 
+            background: rgba(20, 20, 22, 0.9);
+            border: 1px solid #27272a; backdrop-filter: blur(10px); 
+            padding: 1rem 1.5rem; border-radius: 20px; 
+            display: none; flex-direction: column; gap: 6px; 
             z-index: 9000; opacity: 0; transition: opacity 0.5s ease;
+            text-align: right; min-width: 220px;
         }
 
-        .timer-dot { width: 9px; height: 9px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
+        .status-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+        .timer-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
+        .limit-row { font-size: 0.85rem; color: var(--accent-purple); font-weight: 700; margin-top: 2px; letter-spacing: 0.5px; }
 
-        /* 🖥️ MAIN WORKSPACE CONTENT */
+        /* 🖥️ CLEAN MAIN WORKSPACE */
         #mainWorkspace { text-align: center; opacity: 0; transform: scale(0.98); transition: opacity 0.5s ease, transform 0.5s ease; }
         #mainWorkspace.loaded { opacity: 1; transform: scale(1); }
 
-        .dashboard-container h2 { font-size: 3rem; margin-bottom: 1rem; color: #fff; }
-        .dashboard-container p { color: var(--text-muted); margin-bottom: 2rem; }
-
-        .script-box {
-            background: var(--panel-dark); border: 1px solid #27272a; padding: 2rem;
-            border-radius: 15px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .limit-display { color: var(--accent-purple); font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
-
-        @keyframes slideDownIn { from { opacity: 0; transform: translateY(-40px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUpIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .dashboard-layout { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
     </style>
 </head>
 <body>
@@ -120,21 +112,18 @@
         </div>
     </div>
 
-    <div id="liveTimerWidget">
-        <div class="timer-dot"></div>
-        <span style="color: var(--text-muted); font-weight: 400">Session Remaining:</span>
-        <span id="countdownClock" style="color: #fff">00h 00m 00s</span>
+    <div id="metaStatusWidget">
+        <div class="status-row">
+            <div class="timer-dot"></div>
+            <span style="color: var(--text-muted); font-weight: 400;">Time Left:</span>
+            <span id="countdownClock" style="color: #fff">00h 00m 00s</span>
+        </div>
+        <div class="limit-row" id="dailyLimitText">Generations Left: 2</div>
     </div>
 
     <div id="mainWorkspace">
-        <div class="dashboard-container">
-            <h2>System Authorized</h2>
-            <p>Hardware fingerprint matched. Access to core workspace panels is now available.</p>
-            
-            <div class="script-box">
-                <button class="action-btn" onclick="generateScript()">Generate Custom Script</button>
-                <div class="limit-display" id="dailyLimitText">Daily Limit Used: 0 / 2</div>
-            </div>
+        <div class="dashboard-layout">
+            <button class="action-btn" id="genScriptBtn" onclick="generateScript()">Generate Custom Script</button>
         </div>
     </div>
 
@@ -143,12 +132,12 @@
         let internalTimerLoop = null;
         let globalRemainingMs = 0;
         let activeKey = '';
+        let currentGenerationsLeft = 2;
 
         // 🔄 AUTO-LOGIN INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('onlyzens_auth_key');
             if (savedKey) {
-                // Pre-fill input field and automatically execute check
                 document.getElementById('licenseKeyInput').value = savedKey;
                 silentVerify(savedKey);
             }
@@ -164,13 +153,13 @@
                 const data = await response.json();
                 if (response.ok && data.allowed) {
                     activeKey = key;
-                    document.getElementById('dailyLimitText').innerText = `Daily Limit Used: ${data.generationsToday || 0} / 2`;
+                    updateGenerationUI(data.generationsToday, data.isAdmin);
                     handleSuccessfulLogin(data.timeLeftMs);
                 } else {
-                    localStorage.removeItem('onlyzens_auth_key'); // Saved key expired or deleted
+                    localStorage.removeItem('onlyzens_auth_key');
                 }
             } catch (err) {
-                console.error("Auto-login failed to connect to backend engine.");
+                console.error("Auto-login backend connection error.");
             }
         }
 
@@ -190,21 +179,26 @@
 
                 if (response.ok && data.allowed) {
                     activeKey = licenseKey;
-                    // 💾 SAVE KEY TO REMEMBER IT NEXT TIME
                     localStorage.setItem('onlyzens_auth_key', licenseKey);
-                    document.getElementById('dailyLimitText').innerText = `Daily Limit Used: ${data.generationsToday || 0} / 2`;
+                    updateGenerationUI(data.generationsToday, data.isAdmin);
                     handleSuccessfulLogin(data.timeLeftMs);
                 } else {
-                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Checksum Failure.'}`);
+                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Failure.'}`);
                 }
             } catch (err) {
-                alert("Communication error: Unable to reach secure authentication gatekeeper.");
+                alert("Gatekeeper connection failure.");
             }
         }
 
-        // FUNCTION TO HANDLE RUNNING SCRIPTS AND DAILY LIMITS
+        // UPDATED SCRIPT GENERATION FUNCTION (STOPS CLICK AT 0 LEFT)
         async function generateScript() {
             if (!activeKey) return;
+
+            // Strict client-side block check if limit already hit
+            if (currentGenerationsLeft <= 0) {
+                alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
+                return;
+            }
 
             try {
                 const response = await fetch(`${API_BASE_URL}/use-generation`, {
@@ -215,22 +209,56 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    alert("🎨 Script generation successful! Enjoy your setup.");
-                    // Dynamic math calculation to update used limit display
-                    const used = 2 - data.remaining;
-                    document.getElementById('dailyLimitText').innerText = `Daily Limit Used: ${used} / 2`;
+                    alert("🎨 Script generation successful!");
+                    
+                    if (data.remaining === "UNLIMITED") {
+                        currentGenerationsLeft = "UNLIMITED";
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+                    } else {
+                        currentGenerationsLeft = data.remaining;
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ${data.remaining}`;
+                        if (currentGenerationsLeft <= 0) {
+                            setBtnDisabledState(true);
+                        }
+                    }
                 } else {
                     alert(`🛑 LIMIT REACHED: ${data.message}`);
+                    setBtnDisabledState(true);
                 }
             } catch (err) {
-                alert("Could not connect to database limit tracking nodes.");
+                alert("Database logging connection error.");
+            }
+        }
+
+        function updateGenerationUI(usedCount, isAdmin) {
+            if (isAdmin) {
+                currentGenerationsLeft = 999;
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+            } else {
+                currentGenerationsLeft = 2 - (usedCount || 0);
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+                if (currentGenerationsLeft <= 0) {
+                    setBtnDisabledState(true);
+                }
+            }
+        }
+
+        function setBtnDisabledState(disabled) {
+            const btn = document.getElementById('genScriptBtn');
+            if (disabled) {
+                btn.style.background = '#3f3f46';
+                btn.style.cursor = 'not-allowed';
+                btn.style.transform = 'none';
+            } else {
+                btn.style.background = 'var(--accent-green)';
+                btn.style.cursor = 'pointer';
             }
         }
 
         function handleSuccessfulLogin(sessionTimeMs) {
             globalRemainingMs = sessionTimeMs;
             if (window.confetti) {
-                confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
+                confetti({ particleCount: 80, spread: 50, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
             }
             document.getElementById('authOverlay').classList.add('authenticated'); 
             document.getElementById('mainWorkspace').classList.add('loaded');
@@ -238,11 +266,11 @@
         }
 
         function startLiveWidgetTimer() {
-            const timerWidget = document.getElementById('liveTimerWidget');
+            const statusWidget = document.getElementById('metaStatusWidget');
             const clockDisplay = document.getElementById('countdownClock');
-            timerWidget.style.display = 'flex';
-            timerWidget.offsetHeight; 
-            timerWidget.style.opacity = '1';
+            statusWidget.style.display = 'flex';
+            statusWidget.offsetHeight; 
+            statusWidget.style.opacity = '1';
 
             internalTimerLoop = setInterval(() => {
                 if (globalRemainingMs <= 0) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OnlyZens AI | GPC Dashboard</title>
+    <title>OnlyZens AI | Advanced GPC Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         .neon-glow { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
@@ -17,23 +17,21 @@
             <span class="text-2xl font-black tracking-wider text-purple-500 neon-text">ONLYZENS <span class="text-white font-medium text-lg">AI</span></span>
         </div>
         <div class="text-sm bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
-            v1.1 Advanced
+            v1.2 Advanced Training
         </div>
     </header>
 
     <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-3 bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-4 h-fit">
-            <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Zen AI Guide</h2>
-            <p class="text-xs text-neutral-400 leading-relaxed">
-                The AI is fed real GPC layout structures. It analyzes data structures, execution blocks, and conditional tracking loops.
-            </p>
-            <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800/80 text-xs text-neutral-400">
-                <span class="text-purple-400 font-semibold block mb-1">Supported Formats:</span>
-                * Rapid-fire / Hair Triggers<br>
-                * Anti-recoil adjustment values<br>
-                * Tracking mod profiles
+            <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">AI Knowledge Base</h2>
+            <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800/80 text-xs">
+                <span class="text-purple-400 font-semibold block mb-1">AI Training Status:</span>
+                <p id="memoryStatus" class="text-green-400 font-mono">● Active (Using Base Rules)</p>
             </div>
+            <p class="text-xs text-neutral-400 leading-relaxed">
+                Go to the 🧠 **Train AI Brain** tab to feed the generator custom .gpc examples. The more high-tier scripts you feed it, the cleaner its output becomes.
+            </p>
         </div>
 
         <div class="lg:col-span-9 flex flex-col gap-6">
@@ -44,6 +42,9 @@
                 </button>
                 <button id="tabModify" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all">
                     Modify Existing .GPC
+                </button>
+                <button id="tabTrain" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all">
+                    🧠 Train AI Brain
                 </button>
             </div>
 
@@ -70,13 +71,26 @@
                     <div>
                         <label class="block text-sm font-semibold text-neutral-300 mb-2">What modifications or fixes do you want made?</label>
                         <div class="flex flex-col sm:flex-row gap-3">
-                            <input type="text" id="modifyPrompt" placeholder="e.g., 'Change the rapid fire toggle to hold D-PAD up + Options', or 'optimize the tracking loops'" 
+                            <input type="text" id="modifyPrompt" placeholder="e.g., 'Change the rapid fire toggle to hold D-PAD up + Options'" 
                                 class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
                             <button id="btnModRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
                                 Refactor Script
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div id="panelTrain" class="flex flex-col gap-4 hidden">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col gap-4 neon-glow">
+                    <div>
+                        <label class="block text-sm font-semibold text-neutral-300 mb-2">Feed AI a flawless .GPC script to analyze and mimic:</label>
+                        <textarea id="trainingCodeInput" rows="10" placeholder="// Paste a working, perfect GPC script here..." 
+                            class="w-full font-mono bg-neutral-950 border border-neutral-800 rounded-lg p-3 text-xs focus:outline-none focus:border-purple-500 text-neutral-100"></textarea>
+                    </div>
+                    <button id="btnSaveTraining" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg text-sm transition-all shadow-lg">
+                        Save to AI Memory & Train
+                    </button>
                 </div>
             </div>
 
@@ -106,59 +120,68 @@
         // Tab switching engine
         const tabGen = document.getElementById('tabGenerate');
         const tabMod = document.getElementById('tabModify');
+        const tabTrn = document.getElementById('tabTrain');
+        
         const panelGen = document.getElementById('panelGenerate');
         const panelMod = document.getElementById('panelModify');
+        const panelTrn = document.getElementById('panelTrain');
+
+        function clearTabs() {
+            [tabGen, tabMod, tabTrn].forEach(t => t.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all");
+            [panelGen, panelMod, panelTrn].forEach(p => p.classList.add('hidden'));
+        }
 
         tabGen.addEventListener('click', () => {
+            clearTabs();
             tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
-            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
             panelGen.classList.remove('hidden');
-            panelMod.classList.add('hidden');
         });
 
         tabMod.addEventListener('click', () => {
+            clearTabs();
             tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
-            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
             panelMod.classList.remove('hidden');
-            panelGen.classList.add('hidden');
         });
 
-        // Elite target model instructions acting as structural code reference
-        const baseGpcRules = `You are an expert Cronus Zen compiler system analyzing GPC script layouts.
-        Analyze this exact structural architecture template to learn how functional code looks:
-        
-        define SHOOT_BUTTON = XB1_RT;
-        define SCOPE_BUTTON = XB1_LT;
-        int rapidFireActive = FALSE;
-        
-        main {
-            if(get_val(XB1_UP) && event_press(XB1_VIEW)) {
-                rapidFireActive = !rapidFireActive;
-            }
-            if(get_val(SHOOT_BUTTON) && rapidFireActive) {
-                combo_run(RapidFireSequence);
-            }
-        }
-        
-        combo RapidFireSequence {
-            set_val(SHOOT_BUTTON, 100);
-            wait(40);
-            set_val(SHOOT_BUTTON, 0);
-            wait(30);
-        }
+        tabTrn.addEventListener('click', () => {
+            clearTabs();
+            tabTrn.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
+            panelTrn.classList.remove('hidden');
+        });
 
-        Strict Rules:
-        - Only return executable GPC block code inside code syntax wrappers.
-        - Do not attach explanations, headers, footers, or markdown text.`;
+        // Dynamic System Prompt Memory
+        let customTrainedGpc = "";
 
-        // Execution router
+        document.getElementById('btnSaveTraining').addEventListener('click', () => {
+            const rawInput = document.getElementById('trainingCodeInput').value.trim();
+            if(!rawInput) return alert("Please paste a working script to analyze.");
+            
+            customTrainedGpc = rawInput;
+            document.getElementById('memoryStatus').innerText = "● Custom Code Learned! 🧠";
+            document.getElementById('memoryStatus').className = "text-purple-400 font-mono animate-pulse";
+            alert("AI has analyzed your script example and appended it to its code generation system instructions!");
+        });
+
+        // Pipeline execution engine
         async function runPipeline(fullPrompt) {
             const codeOutput = document.getElementById('codeOutput');
+            
+            // Crafting the base setup rules
+            let systemInstruction = `You are an elite Cronus Zen compiler system analyzing GPC script layouts.
+            Rules:
+            1. ONLY output raw, working GPC code inside a single code block. No text, explanations, or notes.
+            2. Follow accurate GPC syntax layout (main {}, combo {}, wait(), get_val()).`;
+
+            // If you have trained it, inject your script example directly into the AI's instruction set!
+            if (customTrainedGpc) {
+                systemInstruction += `\n\nCRITICAL: The user has trained you with this exact template example of how they expect code to look. Follow its structural formatting, variable styling, and compilation style perfectly:\n${customTrainedGpc}`;
+            }
+
             try {
                 const response = await fetch('/.netlify/functions/generate-script', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: fullPrompt, system: baseGpcRules })
+                    body: JSON.stringify({ prompt: fullPrompt, system: systemInstruction })
                 });
                 const data = await response.json();
                 codeOutput.innerText = data.script || "// Empty sequence compiled.";
@@ -167,20 +190,20 @@
             }
         }
 
-        // Action handlers
+        // Click actions
         document.getElementById('btnGenRun').addEventListener('click', async () => {
             const promptText = document.getElementById('genPrompt').value.trim();
             if(!promptText) return alert('Enter generation specs.');
-            document.getElementById('codeOutput').innerText = "// Compiling fresh configuration logic...";
-            await runPipeline(`Generate a brand new script based on this blueprint request: ${promptText}`);
+            document.getElementById('codeOutput').innerText = "// Compiling configuration logic via trained model instructions...";
+            await runPipeline(`Generate a brand new script based on this request: ${promptText}`);
         });
 
         document.getElementById('btnModRun').addEventListener('click', async () => {
             const targetSrc = document.getElementById('modifyExistingCode').value.trim();
             const modTask = document.getElementById('modifyPrompt').value.trim();
             if(!targetSrc || !modTask) return alert('Fill in the source block and target mod specs.');
-            document.getElementById('codeOutput').innerText = "// Analyzing structure and processing refactor instructions...";
-            await runPipeline(`You are refactoring an existing script. Use this source target input:\n\n${targetSrc}\n\nApply these modification instructions carefully: ${modTask}`);
+            document.getElementById('codeOutput').innerText = "// Processing refactor instructions through analyzed templates...";
+            await runPipeline(`You are refactoring an existing script. Source input:\n\n${targetSrc}\n\nApply these exact changes: ${modTask}`);
         });
 
         document.getElementById('copyBtn').addEventListener('click', () => {

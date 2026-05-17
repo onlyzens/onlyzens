@@ -1,763 +1,528 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Zenith Portal</title>
-
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <style>
-
         :root {
-
             --bg-dark: #09090b;
-
             --panel-dark: #141416;
-
             --accent-purple: #a855f7;
-
-            --accent-green: #10b981; /* Green color for the button */
-
+            --accent-green: #10b981; 
             --accent-glow-p: rgba(168, 85, 247, 0.4);
-
             --accent-glow-g: rgba(16, 185, 129, 0.4);
-
             --text-main: #f4f4f5;
-
             --text-muted: #a1a1aa;
-
         }
-
-
 
         * {
-
             box-sizing: border-box;
-
             margin: 0;
-
             padding: 0;
-
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-
         }
-
-
 
         body {
-
             background-color: var(--bg-dark);
-
             color: var(--text-main);
-
             height: 100vh;
-
             overflow: hidden;
-
             display: flex;
-
             align-items: center;
-
             justify-content: center;
-
         }
-
-
 
         /* 🔒 AUTHENTICATION OVERLAY LAYER */
-
         #authOverlay {
-
             position: fixed;
-
             top: 0;
-
             left: 0;
-
             width: 100vw;
-
             height: 100vh;
-
             background: rgba(9, 9, 11, 0.98);
-
             backdrop-filter: blur(15px);
-
             z-index: 9999;
-
             display: flex;
-
-            flex-direction: column; /* Stack Title above Card */
-
+            flex-direction: column; 
             align-items: center;
-
             justify-content: center;
-
-            transition: opacity 0.8s ease, visibility 0.8s ease; /* Slow fade out */
-
+            transition: opacity 0.8s ease, visibility 0.8s ease; 
         }
-
-
-
-        /* ⬇️ TITLE ANIMATION (Slide Down) */
 
         .portal-title {
-
             font-size: 2.5rem;
-
             margin-bottom: 2rem;
-
             letter-spacing: 2px;
-
             font-weight: 800;
-
             color: var(--accent-purple);
-
             text-shadow: 0 0 20px var(--accent-glow-p);
-
-            
-
-            /* Apply Slide Down Animation */
-
             animation: slideDownIn 1s ease forwards;
-
-            opacity: 0; /* Start invisible */
-
+            opacity: 0; 
         }
-
-
 
         .portal-title span {
-
             color: var(--text-main);
-
             font-size: 1.2rem;
-
             font-weight: 400;
-
             margin-left: 10px;
-
             text-shadow: none;
-
         }
-
-
-
-        /* ⬆️ CARD ANIMATION (Slide Up) */
 
         .auth-card {
-
             background: var(--panel-dark);
-
             border: 1px solid #27272a;
-
             padding: 2.5rem;
-
             border-radius: 20px;
-
             width: 100%;
-
             max-width: 500px;
-
             text-align: center;
-
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-
-            
-
-            /* Apply Slide Up Animation */
-
             animation: slideUpIn 1s ease forwards;
-
-            animation-delay: 0.2s; /* Slight staggered entry */
-
-            opacity: 0; /* Start invisible */
-
+            animation-delay: 0.2s; 
+            opacity: 0; 
         }
-
-
 
         .auth-card p {
-
             color: var(--text-muted);
-
             font-size: 0.95rem;
-
             margin-bottom: 2rem;
-
             letter-spacing: 0.5px;
-
         }
-
-
-
-        /* 🟢 INPUT + GREEN BUTTON LAYOUT (Horizontal inline) */
 
         .inline-input-group {
-
             display: flex;
-
-            gap: 12px; /* Gap between input and button */
-
+            gap: 12px; 
             align-items: center;
-
             justify-content: center;
-
         }
-
-
 
         .auth-card input {
-
-            flex-grow: 1; /* Input takes available space */
-
+            flex-grow: 1; 
             background: #09090b;
-
             border: 1px solid #3f3f46;
-
             padding: 0.9rem 1.2rem;
-
             border-radius: 10px;
-
             color: white;
-
             font-size: 1.05rem;
-
             text-align: center;
-
             letter-spacing: 2px;
-
             outline: none;
-
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
-
         }
-
-
 
         .auth-card input:focus {
-
             border-color: var(--accent-purple);
-
             box-shadow: 0 0 15px var(--accent-glow-p);
-
         }
 
-
-
-        .auth-btn {
-
-            background: var(--accent-green); /* Green Button */
-
+        .auth-btn, .action-btn {
+            background: var(--accent-green); 
             color: white;
-
             border: none;
-
             padding: 0.9rem 1.8rem;
-
             border-radius: 10px;
-
             font-size: 1rem;
-
             font-weight: 700;
-
             cursor: pointer;
-
             text-transform: uppercase;
-
             letter-spacing: 1px;
-
             transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
-
         }
 
-
-
-        .auth-btn:hover {
-
-            background: #059669; /* Darker green */
-
+        .auth-btn:hover, .action-btn:hover {
+            background: #059669; 
             transform: translateY(-2px);
-
             box-shadow: 0 0 15px var(--accent-glow-g);
-
         }
-
-
-
-        /* Utility State: Active Fade Out */
 
         #authOverlay.authenticated {
-
             opacity: 0;
-
-            pointer-events: none; /* Disable interaction during transition */
-
+            pointer-events: none; 
         }
 
-
-
-        /* ----------------------------------------------------------- */
-
-
-
-        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET (Top Right) */
-
+        /* ⏳ FLOATING STATUS WIDGET (Top Right) */
         #liveTimerWidget {
-
             position: fixed;
-
             top: 25px;
-
             right: 25px;
-
             background: rgba(20, 20, 22, 0.9);
-
             border: 1px solid #27272a;
-
             backdrop-filter: blur(10px);
-
-            padding: 0.7rem 1.4rem;
-
-            border-radius: 40px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            font-weight: 700;
-
-            font-size: 1rem;
-
-            z-index: 9000;
-
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-
-            
-
-            /* Hidden until logic triggers it */
-
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
             display: none; 
-
+            flex-direction: column;
+            gap: 6px;
+            z-index: 9000;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
             opacity: 0;
-
-            transition: opacity 1s ease 0.5s; /* Fade in slowly after overlay starts fading */
-
+            transition: opacity 1s ease 0.5s; 
+            text-align: right;
+            min-width: 220px;
         }
 
-
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
 
         .timer-dot {
-
-            width: 9px;
-
-            height: 9px;
-
+            width: 8px;
+            height: 8px;
             background: var(--accent-green);
-
             border-radius: 50%;
-
             box-shadow: 0 0 10px var(--accent-green);
-
             animation: pulseDot 2.5s infinite;
-
         }
 
+        .limit-row {
+            font-size: 0.85rem;
+            color: var(--accent-purple);
+            font-weight: 700;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
 
-
-        /* 🖥️ MAIN SUITE CONTENT DISCOVERY AREA */
-
-        #mainWorkspace {
-
-            text-align: center;
-
+        /* 🚪 FLOATING LOGOUT BUTTON (Bottom Right) */
+        #logoutContainer {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9000;
+            display: none;
             opacity: 0;
-
-            transform: scale(0.96);
-
-            /* Slower transition that starts after overlay exit has begun */
-
-            transition: opacity 1s ease 0.6s, transform 1s ease 0.6s; 
-
+            transition: opacity 0.5s ease;
         }
 
+        .logout-btn {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
 
+        .logout-btn:hover {
+            background: #f43f5e;
+            color: white;
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* 🖥️ RESTORED OLD MENU AREA */
+        #mainWorkspace {
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.96);
+            transition: opacity 1s ease 0.6s, transform 1s ease 0.6s; 
+        }
 
         #mainWorkspace.loaded {
-
             opacity: 1;
-
             transform: scale(1);
-
         }
-
-
 
         .dashboard-container h2 {
-
             font-size: 3rem;
-
             margin-bottom: 1.5rem;
-
             background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-
             -webkit-background-clip: text;
-
             -webkit-text-fill-color: transparent;
-
         }
-
-
 
         .dashboard-container p {
-
             color: var(--text-muted);
-
             font-size: 1.1rem;
-
             max-width: 600px;
-
-            margin: 0 auto;
-
+            margin: 0 auto 2.5rem auto;
             line-height: 1.6;
-
         }
 
-
-
-        /* 🛠️ DEFINITIONS: KEYFRAME ANIMATIONS */
-
+        /* Animations */
         @keyframes slideDownIn {
-
             from { opacity: 0; transform: translateY(-60px); }
-
             to { opacity: 1; transform: translateY(0); }
-
         }
-
-
 
         @keyframes slideUpIn {
-
             from { opacity: 0; transform: translateY(60px); }
-
             to { opacity: 1; transform: translateY(0); }
-
         }
-
-
 
         @keyframes pulseDot {
-
             0% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
-
             50% { opacity: 1; box-shadow: 0 0 12px var(--accent-green); }
-
             100% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
-
         }
 
-
-
-        /* Utilities */
-
         .hidden { display: none !important; }
-
     </style>
-
 </head>
-
 <body>
 
-
-
     <div id="authOverlay">
-
         <div class="portal-title">OnlyZens <span>ai</span></div>
-
-        
-
         <div class="auth-card">
-
             <p>Verification module active. Input dynamic access key to authorize session.</p>
-
-            
-
             <div class="inline-input-group">
-
                 <input type="text" id="licenseKeyInput" placeholder="ZENAI-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20">
-
                 <button class="auth-btn" onclick="submitVerification()">Verify</button>
-
             </div>
-
         </div>
-
     </div>
-
-
 
     <div id="liveTimerWidget">
-
-        <div class="timer-dot"></div>
-
-        <span style="color: var(--text-muted); font-weight: 400">Session Remaining:</span>
-
-        <span id="countdownClock" style="color: #fff">00h 00m 00s</span>
-
+        <div class="status-row">
+            <div class="timer-dot"></div>
+            <span style="color: var(--text-muted); font-weight: 400">Session Remaining:</span>
+            <span id="countdownClock" style="color: #fff">00h 00m 00s</span>
+        </div>
+        <div class="limit-row" id="dailyLimitText">Generations Left: 2</div>
     </div>
-
-
 
     <div id="mainWorkspace">
-
         <div class="dashboard-container">
-
-            <h2>System Authorized</h2>
-
+            <h2>OnlyZens AI Trained Version</h2>
             <p>Hardware fingerprint matched. Secure tunnel established with background data engine. Access to core workspace panels is now available.</p>
-
-            </div>
-
+            <button class="action-btn" id="genScriptBtn" onclick="generateScript()">Generate Custom Script</button>
+        </div>
     </div>
 
-
+    <div id="logoutContainer">
+        <button class="logout-btn" onclick="triggerSessionLogout()">Logout</button>
+    </div>
 
     <script>
-
         const API_BASE_URL = 'http://localhost:3000/api'; 
-
         let internalTimerLoop = null;
-
         let globalRemainingMs = 0;
+        let activeKey = '';
+        let currentGenerationsLeft = 2;
+        let isUserAdmin = false;
 
+        // 🔄 MEMORY CHECK ON LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('onlyzens_auth_key');
+            if (savedKey) {
+                document.getElementById('licenseKeyInput').value = savedKey;
+                silentVerify(savedKey);
+            }
+        });
 
+        async function silentVerify(key) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/verify-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: key })
+                });
+                const data = await response.json();
+                if (response.ok && data.allowed) {
+                    activeKey = key;
+                    isUserAdmin = data.isAdmin;
+                    updateGenerationUI(data.generationsToday, data.isAdmin);
+                    handleSuccessfulLogin(data.timeLeftMs);
+                } else {
+                    localStorage.removeItem('onlyzens_auth_key');
+                }
+            } catch (err) {
+                console.error("Auto-login pipeline failure.");
+            }
+        }
 
         async function submitVerification() {
-
             const inputField = document.getElementById('licenseKeyInput');
-
-            const licenseKey = inputField.value.trim().toUpperCase(); // Format case automatically
-
-
+            const licenseKey = inputField.value.trim().toUpperCase(); 
 
             if (!licenseKey) return alert("System requires an access license string.");
 
-
-
             try {
-
                 const response = await fetch(`${API_BASE_URL}/verify-key`, {
-
                     method: 'POST',
-
                     headers: { 'Content-Type': 'application/json' },
-
                     body: JSON.stringify({ key: licenseKey })
-
                 });
-
-
 
                 const data = await response.json();
 
-
-
                 if (response.ok && data.allowed) {
-
-                    // Start Exit Transition Sequence
-
+                    activeKey = licenseKey;
+                    isUserAdmin = data.isAdmin;
+                    localStorage.setItem('onlyzens_auth_key', licenseKey);
+                    updateGenerationUI(data.generationsToday, data.isAdmin);
                     handleSuccessfulLogin(data.timeLeftMs);
-
                 } else {
-
-                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Checksum Failure.'}`);
-
+                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Failure.'}`);
                 }
-
             } catch (err) {
-
                 console.error(err);
-
-                alert("Communication error: Unable to reach secure authentication gatekeeper.");
-
+                alert("Communication error: Unable to reach gatekeeper.");
             }
-
         }
 
+        async function generateScript() {
+            if (!activeKey) return;
 
+            if (!isUserAdmin && currentGenerationsLeft <= 0) {
+                alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/use-generation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: activeKey })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert("🎨 Script generation successful!");
+                    
+                    if (data.remaining === "UNLIMITED" || isUserAdmin) {
+                        currentGenerationsLeft = 999;
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+                    } else {
+                        currentGenerationsLeft = data.remaining;
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ${data.remaining}`;
+                        if (currentGenerationsLeft <= 0) setBtnDisabledState(true);
+                    }
+                } else {
+                    alert(`🛑 LIMIT REACHED: ${data.message}`);
+                    setBtnDisabledState(true);
+                }
+            } catch (err) {
+                alert("Database logging link failure.");
+            }
+        }
+
+        function updateGenerationUI(usedCount, isAdmin) {
+            if (isAdmin) {
+                currentGenerationsLeft = 999;
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+                setBtnDisabledState(false);
+            } else {
+                currentGenerationsLeft = 2 - (usedCount || 0);
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+                setBtnDisabledState(currentGenerationsLeft <= 0);
+            }
+        }
+
+        function setBtnDisabledState(disabled) {
+            const btn = document.getElementById('genScriptBtn');
+            if (!btn) return;
+            if (disabled) {
+                btn.style.background = '#3f3f46';
+                btn.style.cursor = 'not-allowed';
+                btn.style.transform = 'none';
+                btn.style.boxShadow = 'none';
+            } else {
+                btn.style.background = 'var(--accent-green)';
+                btn.style.cursor = 'pointer';
+            }
+        }
 
         function handleSuccessfulLogin(sessionTimeMs) {
-
             globalRemainingMs = sessionTimeMs;
 
-
-
-            // 1. CONFETTI EFFECT (Optional, but looks clean on success)
-
             if (window.confetti) {
-
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
-
             }
-
-
-
-            // 2. FADE OUT OVERLAY (Triggers slower 0.8s exit animation)
 
             const overlay = document.getElementById('authOverlay');
-
-            overlay.classList.add('authenticated'); // Starts exit animation
-
+            overlay.classList.add('authenticated'); 
             
-
-            // Wait for fade animation, then remove completely from DOM flow
-
-            setTimeout(() => {
-
-                overlay.classList.add('hidden');
-
-            }, 850);
-
-
-
-            // 3. FADE IN MAIN DASHBOARD (Staggered transition defined in CSS)
+            setTimeout(() => { overlay.classList.add('hidden'); }, 850);
 
             const workspace = document.getElementById('mainWorkspace');
-
             workspace.classList.add('loaded');
 
-
-
-            // 4. FIRE UP INTERACTIVE TIMER WIDGET
+            const logoutContainer = document.getElementById('logoutContainer');
+            logoutContainer.style.display = 'block';
+            setTimeout(() => { logoutContainer.style.opacity = '1'; }, 50);
 
             startLiveWidgetTimer();
-
         }
-
-
 
         function startLiveWidgetTimer() {
-
             const timerWidget = document.getElementById('liveTimerWidget');
-
             const clockDisplay = document.getElementById('countdownClock');
-
             
-
-            // Show widget frame (CSS transition handles fade-in stagger)
-
             timerWidget.style.display = 'flex';
-
-            // Force reflow for transition
-
             timerWidget.offsetHeight; 
-
             timerWidget.style.opacity = '1';
 
-
-
-            // Establish tick loop (running every 1 second)
+            if (internalTimerLoop) clearInterval(internalTimerLoop);
 
             internalTimerLoop = setInterval(() => {
-
-                if (globalRemainingMs <= 0) {
-
-                    clearInterval(internalTimerLoop);
-
-                    clockDisplay.innerText = "EXPIRED";
-
-                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444'; // Turn red
-
-                    timerWidget.querySelector('.timer-dot').style.boxShadow = '0 0 10px #ef4444';
-
-                    alert("Session duration complete. Hardware lock engaged.");
-
-                    window.location.reload(); // Lock system down instantly
-
+                if (isUserAdmin) {
+                    clockDisplay.innerText = "∞";
                     return;
-
                 }
 
+                if (globalRemainingMs <= 0) {
+                    clearInterval(internalTimerLoop);
+                    clockDisplay.innerText = "EXPIRED";
+                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444'; 
+                    timerWidget.querySelector('.timer-dot').style.boxShadow = '0 0 10px #ef4444';
+                    alert("Session duration complete. Hardware lock engaged.");
+                    triggerSessionLogout();
+                    return;
+                }
 
-
-                globalRemainingMs -= 1000; // Deduct 1 second
-
+                globalRemainingMs -= 1000; 
                 
-
-                // Format display logic
-
                 const totalSeconds = Math.floor(globalRemainingMs / 1000);
-
                 const hours = Math.floor(totalSeconds / 3600);
-
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
-
                 const seconds = totalSeconds % 60;
 
-
-
-                // Leading zero padding (05h instead of 5h)
-
-                const hDisplay = String(hours).padStart(2, '0');
-
-                const mDisplay = String(minutes).padStart(2, '0');
-
-                const sDisplay = String(seconds).padStart(2, '0');
-
-
-
-                clockDisplay.innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
-
+                clockDisplay.innerText = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
             }, 1000);
-
         }
 
-
-
-        // Auto-add dashes as user types (Layout enhancement)
+        // 🚪 LOGOUT UTILITY
+        function triggerSessionLogout() {
+            clearInterval(internalTimerLoop);
+            localStorage.removeItem('onlyzens_auth_key');
+            activeKey = '';
+            isUserAdmin = false;
+            
+            document.getElementById('licenseKeyInput').value = '';
+            document.getElementById('liveTimerWidget').style.display = 'none';
+            document.getElementById('logoutContainer').style.display = 'none';
+            document.getElementById('mainWorkspace').classList.remove('loaded');
+            
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.remove('hidden', 'authenticated');
+        }
 
         document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
-
             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-
             let formatted = "";
-
-            
-
             if (value.startsWith('ZENAI')) {
-
                 formatted = 'ZENAI';
-
                 let rest = value.substring(5);
-
                 if (rest.length > 0) formatted += '-' + rest.substring(0, 4);
-
                 if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
-
                 if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
-
             } else {
-
-                // If they don't type ZENAI first, allow free input but cap at total length
-
                 formatted = value.substring(0,20);
-
             }
-
             e.target.value = formatted;
-
         });
-
     </script>
-
 </body>
-
 </html>

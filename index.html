@@ -3,288 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith Portal</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>OnlyZens AI | GPC Script Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        :root {
-            --bg-dark: #09090b;
-            --panel-dark: #141416;
-            --accent-purple: #a855f7;
-            --accent-glow: rgba(168, 85, 247, 0.4);
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* 🔒 AUTHENTICATION OVERLAY (STAYS ON TOP UNTIL KEY IS VALID) */
-        #authOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(9, 9, 11, 0.95);
-            backdrop-filter: blur(12px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        .auth-card {
-            background: var(--panel-dark);
-            border: 1px solid #27272a;
-            padding: 2.5rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 440px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .auth-card h1 {
-            font-size: 1.75rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: 1px;
-        }
-
-        .auth-card h1 span {
-            color: var(--accent-purple);
-            text-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .auth-card p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .auth-card input {
-            width: 100%;
-            background: #09090b;
-            border: 1px solid #3f3f46;
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            text-align: center;
-            letter-spacing: 2px;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-
-        .auth-card input:focus {
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .auth-btn {
-            width: 100%;
-            background: var(--accent-purple);
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.3s ease;
-        }
-
-        .auth-btn:hover {
-            background: #9333ea;
-            transform: translateY(-1px);
-        }
-
-        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET */
-        #liveTimerWidget {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(20, 20, 22, 0.85);
-            border: 1px solid #27272a;
-            backdrop-filter: blur(8px);
-            padding: 0.6rem 1.2rem;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            letter-spacing: 0.5px;
-            z-index: 9000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none; /* Hidden until login */
-        }
-
-        .timer-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #10b981;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
-        }
-
-        /* 🖥️ MAIN CONTENT PANEL DISCOVERY AREA */
-        #mainWorkspace {
-            opacity: 0;
-            transform: scale(0.98);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-            text-align: center;
-        }
-
-        #mainWorkspace.loaded {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .dashboard-container h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .dashboard-container p {
-            color: var(--text-muted);
-        }
-
-        /* Utilities */
-        .hidden { display: none !important; }
+        .neon-glow { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+        .neon-text { text-shadow: 0 0 8px rgba(168, 85, 247, 0.6); }
     </style>
 </head>
-<body>
+<body class="bg-neutral-950 text-neutral-100 min-h-screen font-sans flex flex-col justify-between">
 
-    <div id="authOverlay">
-        <div class="auth-card">
-            <h1>ONLYZENS <span>AI</span></h1>
-            <p>Enter your license key to verify hardware authentication</p>
-            <div class="input-group">
-                <input type="text" id="licenseKeyInput" placeholder="ZENAI-XXXX-XXXX-XXXX" autocomplete="off">
-            </div>
-            <button class="auth-btn" onclick="submitVerification()">Verify License</button>
+    <header class="border-b border-neutral-800 bg-neutral-900/50 backdrop-blur px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl font-black tracking-wider text-purple-500 neon-text">ONLYZENS <span class="text-white font-medium text-lg">AI</span></span>
         </div>
-    </div>
+        <div class="text-sm bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
+            v1.3 Production
+        </div>
+    </header>
 
-    <div id="liveTimerWidget">
-        <div class="timer-dot"></div>
-        <span style="color: var(--text-muted)">Session:</span>
-        <span id="countdownClock">00h 00m 00s</span>
-    </div>
-
-    <div id="mainWorkspace">
-        <div class="dashboard-container">
-            <h2>Welcome to OnlyZens AI Dashboard</h2>
-            <p>Your access has been successfully validated. All background engines are running optimally.</p>
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-3 bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-4 h-fit">
+            <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Zen AI Engine</h2>
+            <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800/80 text-xs">
+                <span class="text-purple-400 font-semibold block mb-1">Engine Tuning:</span>
+                <p class="text-emerald-400 font-mono">● Permanently Trained</p>
             </div>
-    </div>
+            <p class="text-xs text-neutral-400 leading-relaxed">
+                This generator uses hardcoded blueprint reference code. It analyzes structural execution loops, variables, and timings to write valid scripts.
+            </p>
+        </div>
+
+        <div class="lg:col-span-9 flex flex-col gap-6">
+            
+            <div class="flex gap-2 border-b border-neutral-800 pb-1">
+                <button id="tabGenerate" class="px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all">
+                    Create New Script
+                </button>
+                <button id="tabModify" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all">
+                    Modify Existing .GPC
+                </button>
+            </div>
+
+            <div id="panelGenerate" class="flex flex-col gap-4">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 neon-glow">
+                    <label class="block text-sm font-semibold text-neutral-300 mb-2">Build a script from scratch:</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="genPrompt" placeholder="Describe what you want the script to do..." 
+                            class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
+                        <button id="btnGenRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
+                            Generate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panelModify" class="flex flex-col gap-4 hidden">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col gap-4 neon-glow">
+                    <div>
+                        <label class="block text-sm font-semibold text-neutral-300 mb-2">Paste your existing .GPC source code:</label>
+                        <textarea id="modifyExistingCode" rows="6" placeholder="// Paste your code here..." 
+                            class="w-full font-mono bg-neutral-950 border border-neutral-800 rounded-lg p-3 text-xs focus:outline-none focus:border-purple-500 text-neutral-100"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-neutral-300 mb-2">What modifications or fixes do you want made?</label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="modifyPrompt" placeholder="e.g., 'Add a toggle using hold D-PAD up + Options'" 
+                                class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
+                            <button id="btnModRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
+                                Refactor Script
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl flex flex-col flex-1 min-h-[400px]">
+                <div class="border-b border-neutral-800 px-4 py-3 flex justify-between items-center bg-neutral-900/50 rounded-t-xl">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-xs text-neutral-400 ml-2 font-mono">output_workspace.gpc</span>
+                    </div>
+                    <button id="copyBtn" class="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-3 py-1.5 rounded font-medium transition-all">
+                        Copy Code
+                    </button>
+                </div>
+                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm overflow-x-auto rounded-b-xl"><code id="codeOutput">// AI generated structural code appears here...</code></pre>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="border-t border-neutral-900 text-center py-4 text-xs text-neutral-600">
+        &copy; 2026 OnlyZens AI.
+    </footer>
 
     <script>
-        // Adjust this if your server port changes, since running locally use localhost:3000
-        const API_BASE_URL = 'http://localhost:3000/api'; 
-        let internalTimerLoop = null;
-        let globalRemainingMs = 0;
+        // Tab switching engine
+        const tabGen = document.getElementById('tabGenerate');
+        const tabMod = document.getElementById('tabModify');
+        const panelGen = document.getElementById('panelGenerate');
+        const panelMod = document.getElementById('panelModify');
 
-        async function submitVerification() {
-            const inputField = document.getElementById('licenseKeyInput');
-            const licenseKey = inputField.value.trim();
+        tabGen.addEventListener('click', () => {
+            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
+            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
+            panelGen.classList.remove('hidden');
+            panelMod.classList.add('hidden');
+        });
 
-            if (!licenseKey) return alert("Please enter an access license string.");
+        tabMod.addEventListener('click', () => {
+            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
+            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
+            panelMod.classList.remove('hidden');
+            panelGen.classList.add('hidden');
+        });
+
+        // 🧠 PERMANENT AI BLUEPRINT MEMORY
+        // Paste your flawless, 100% working GPC example script inside the backticks below:
+        const goldenTrainedGpc = `PASTE_YOUR_GOLDEN_GPC_SCRIPT_HERE`;
+
+        // Pipeline execution engine
+        async function runPipeline(fullPrompt) {
+            const codeOutput = document.getElementById('codeOutput');
+            
+            let systemInstruction = `You are an elite Cronus Zen compiler system analyzing GPC script layouts.
+            Rules:
+            1. ONLY output raw, working GPC code inside a single code block. Do not include introductory text, headers, footers, markdown formatting symbols, or natural language notes.
+            2. Follow accurate GPC syntax layout flawlessly (main {}, combo {}, wait(), get_val(), set_val()).`;
+
+            // This forces the AI to always use your template blueprint script for style and syntax layout
+            if (goldenTrainedGpc && goldenTrainedGpc !== "PASTE_YOUR_GOLDEN_GPC_SCRIPT_HERE") {
+                systemInstruction += `\n\nCRITICAL BLUEPRINT REQUIRMENT: You must mimic the structural coding habits, variable styling, and layout constraints demonstrated in this verified template example:\n${goldenTrainedGpc}`;
+            }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/verify-key`, {
+                const response = await fetch('/.netlify/functions/generate-script', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: licenseKey })
+                    body: JSON.stringify({ prompt: fullPrompt, system: systemInstruction })
                 });
-
                 const data = await response.json();
-
-                if (response.ok && data.allowed) {
-                    // Success effects!
-                    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff'] });
-                    
-                    globalRemainingMs = data.timeLeftMs;
-
-                    // Hide login card completely
-                    const overlay = document.getElementById('authOverlay');
-                    overlay.style.opacity = '0';
-                    setTimeout(() => overlay.classList.add('hidden'), 500);
-
-                    // Initialize and transition dashboard screen view
-                    const workspace = document.getElementById('mainWorkspace');
-                    workspace.classList.add('loaded');
-
-                    // Fire up the interactive widget countdown clock
-                    startLiveWidgetTimer();
-                } else {
-                    alert(`Access Denied: ${data.error || 'Invalid Validation Parameters.'}`);
-                }
+                codeOutput.innerText = data.script || "// Empty sequence compiled.";
             } catch (err) {
-                console.error(err);
-                alert("Failed to communicate with authentication gatekeeper engine.");
+                codeOutput.innerText = "// Compilation failed during execution.";
             }
         }
 
-        function startLiveWidgetTimer() {
-            const timerWidget = document.getElementById('liveTimerWidget');
-            const clockDisplay = document.getElementById('countdownClock');
-            
-            // Un-hide the widget frame
-            timerWidget.style.display = 'flex';
+        // Click actions
+        document.getElementById('btnGenRun').addEventListener('click', async () => {
+            const promptText = document.getElementById('genPrompt').value.trim();
+            if(!promptText) return alert('Enter generation specs.');
+            document.getElementById('codeOutput').innerText = "// Compiling configuration logic via permanently trained architecture rules...";
+            await runPipeline(`Generate a brand new script based on this request: ${promptText}`);
+        });
 
-            // Establish tick loop intervals running every single second (1000ms)
-            internalTimerLoop = setInterval(() => {
-                if (globalRemainingMs <= 0) {
-                    clearInterval(internalTimerLoop);
-                    clockDisplay.innerText = "Expired";
-                    alert("Your license duration has run out. Session terminated.");
-                    window.location.reload(); // Lock back down instantly
-                    return;
-                }
+        document.getElementById('btnModRun').addEventListener('click', async () => {
+            const targetSrc = document.getElementById('modifyExistingCode').value.trim();
+            const modTask = document.getElementById('modifyPrompt').value.trim();
+            if(!targetSrc || !modTask) return alert('Fill in the source block and target mod specs.');
+            document.getElementById('codeOutput').innerText = "// Processing refactor instructions through custom template rules...";
+            await runPipeline(`You are refactoring an existing script. Source input:\n\n${targetSrc}\n\nApply these exact changes: ${modTask}`);
+        });
 
-                globalRemainingMs -= 1000;
-                
-                // Formatting math calculations
-                const totalSeconds = Math.floor(globalRemainingMs / 1000);
-                const hours = Math.floor(totalSeconds / 3600);
-                const minutes = Math.floor((totalSeconds % 3600) / 60);
-                const seconds = totalSeconds % 60;
-
-                // Pad numbers with leading zeros for visual clean alignment (e.g. 05m instead of 5m)
-                const hDisplay = String(hours).padStart(2, '0');
-                const mDisplay = String(minutes).padStart(2, '0');
-                const sDisplay = String(seconds).padStart(2, '0');
-
-                clockDisplay.innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
-            }, 1000);
-        }
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('codeOutput').innerText);
+            alert('Code cloned to clip area.');
+        });
     </script>
 </body>
 </html>

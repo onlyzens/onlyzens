@@ -17,12 +17,7 @@
             --text-muted: #a1a1aa;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
 
         body {
             background-color: var(--bg-dark);
@@ -34,13 +29,9 @@
             justify-content: center;
         }
 
-        /* 🔒 AUTHENTICATION OVERLAY LAYER */
         #authOverlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(9, 9, 11, 0.98);
             backdrop-filter: blur(15px);
             z-index: 9999;
@@ -48,199 +39,80 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.8s ease, visibility 0.8s ease; /* Smoothly transitions both opacity and visibility */
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
-        /* ⬇️ TITLE ANIMATION (Slide Down) */
         .portal-title {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            letter-spacing: 2px;
-            font-weight: 800;
-            color: var(--accent-purple);
-            text-shadow: 0 0 20px var(--accent-glow-p);
-            
-            animation: slideDownIn 1s ease forwards;
-            opacity: 0;
+            font-size: 2.5rem; margin-bottom: 2rem; letter-spacing: 2px; font-weight: 800;
+            color: var(--accent-purple); text-shadow: 0 0 20px var(--accent-glow-p);
+            animation: slideDownIn 0.8s ease forwards; opacity: 0;
         }
 
-        .portal-title span {
-            color: var(--text-main);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-left: 10px;
-            text-shadow: none;
-        }
+        .portal-title span { color: var(--text-main); font-size: 1.2rem; font-weight: 400; margin-left: 10px; }
 
-        /* ⬆️ CARD ANIMATION (Slide Up) */
         .auth-card {
-            background: var(--panel-dark);
-            border: 1px solid #27272a;
-            padding: 2.5rem;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
+            background: var(--panel-dark); border: 1px solid #27272a; padding: 2.5rem;
+            border-radius: 20px; width: 100%; max-width: 500px; text-align: center;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-            
-            animation: slideUpIn 1s ease forwards;
-            animation-delay: 0.2s;
-            opacity: 0;
+            animation: slideUpIn 0.8s ease forwards; animation-delay: 0.1s; opacity: 0;
         }
 
-        .auth-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-            letter-spacing: 0.5px;
-        }
+        .auth-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
 
-        /* 🟢 INPUT + GREEN BUTTON LAYOUT */
-        .inline-input-group {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: center;
-        }
+        .inline-input-group { display: flex; gap: 12px; align-items: center; justify-content: center; }
 
         .auth-card input {
-            flex-grow: 1;
-            background: #09090b;
-            border: 1px solid #3f3f46;
-            padding: 0.9rem 1.2rem;
-            border-radius: 10px;
-            color: white;
-            font-size: 1.05rem;
-            text-align: center;
-            letter-spacing: 2px;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            flex-grow: 1; background: #09090b; border: 1px solid #3f3f46; padding: 0.9rem 1.2rem;
+            border-radius: 10px; color: white; font-size: 1.05rem; text-align: center;
+            letter-spacing: 2px; outline: none; transition: border-color 0.3s ease;
         }
 
-        .auth-card input:focus {
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 15px var(--accent-glow-p);
+        .auth-card input:focus { border-color: var(--accent-purple); box-shadow: 0 0 15px var(--accent-glow-p); }
+
+        .auth-btn, .action-btn {
+            background: var(--accent-green); color: white; border: none; padding: 0.9rem 1.8rem;
+            border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer;
+            text-transform: uppercase; transition: transform 0.2s, background 0.3s;
         }
 
-        .auth-btn {
-            background: var(--accent-green);
-            color: white;
-            border: none;
-            padding: 0.9rem 1.8rem;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
-        }
+        .auth-btn:hover, .action-btn:hover { background: #059669; transform: translateY(-2px); }
 
-        .auth-btn:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--accent-glow-g);
-        }
+        #authOverlay.authenticated { opacity: 0; visibility: hidden; pointer-events: none; }
 
-        /* Utility State: Active Fade Out (FIXED BY ADDING VISIBILITY HIDDEN) */
-        #authOverlay.authenticated {
-            opacity: 0;
-            visibility: hidden; /* Drops the black glass wall completely out of the DOM layout */
-            pointer-events: none;
-        }
-
-        /* ----------------------------------------------------------- */
-
-        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET */
+        /* ⏳ FLOATING TIMER WIDGET */
         #liveTimerWidget {
-            position: fixed;
-            top: 25px;
-            right: 25px;
-            background: rgba(20, 20, 22, 0.9);
-            border: 1px solid #27272a;
-            backdrop-filter: blur(10px);
-            padding: 0.7rem 1.4rem;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            font-size: 1rem;
-            z-index: 9000;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-            
-            display: none; 
-            opacity: 0;
-            transition: opacity 1s ease 0.5s;
+            position: fixed; top: 25px; right: 25px; background: rgba(20, 20, 22, 0.9);
+            border: 1px solid #27272a; backdrop-filter: blur(10px); padding: 0.7rem 1.4rem;
+            border-radius: 40px; display: none; align-items: center; gap: 12px; font-weight: 700;
+            z-index: 9000; opacity: 0; transition: opacity 0.5s ease;
         }
 
-        .timer-dot {
-            width: 9px;
-            height: 9px;
-            background: var(--accent-green);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-green);
-            animation: pulseDot 2.5s infinite;
+        .timer-dot { width: 9px; height: 9px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
+
+        /* 🖥️ MAIN WORKSPACE CONTENT */
+        #mainWorkspace { text-align: center; opacity: 0; transform: scale(0.98); transition: opacity 0.5s ease, transform 0.5s ease; }
+        #mainWorkspace.loaded { opacity: 1; transform: scale(1); }
+
+        .dashboard-container h2 { font-size: 3rem; margin-bottom: 1rem; color: #fff; }
+        .dashboard-container p { color: var(--text-muted); margin-bottom: 2rem; }
+
+        .script-box {
+            background: var(--panel-dark); border: 1px solid #27272a; padding: 2rem;
+            border-radius: 15px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* 🖥️ MAIN SUITE CONTENT DISCOVERY AREA */
-        #mainWorkspace {
-            text-align: center;
-            opacity: 0;
-            transform: scale(0.96);
-            transition: opacity 1s ease 0.6s, transform 1s ease 0.6s; 
-        }
+        .limit-display { color: var(--accent-purple); font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
 
-        #mainWorkspace.loaded {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .dashboard-container h2 {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .dashboard-container p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* 🛠️ DEFINITIONS: KEYFRAME ANIMATIONS */
-        @keyframes slideDownIn {
-            from { opacity: 0; transform: translateY(-60px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideUpIn {
-            from { opacity: 0; transform: translateY(60px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulseDot {
-            0% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
-            50% { opacity: 1; box-shadow: 0 0 12px var(--accent-green); }
-            100% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
-        }
-
-        /* Utilities */
-        .hidden { display: none !important; }
+        @keyframes slideDownIn { from { opacity: 0; transform: translateY(-40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUpIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div id="authOverlay">
         <div class="portal-title">OnlyZens <span>ai</span></div>
-        
         <div class="auth-card">
             <p>Verification module active. Input dynamic access key to authorize session.</p>
-            
             <div class="inline-input-group">
                 <input type="text" id="licenseKeyInput" placeholder="ZENAI-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20">
                 <button class="auth-btn" onclick="submitVerification()">Verify</button>
@@ -257,14 +129,50 @@
     <div id="mainWorkspace">
         <div class="dashboard-container">
             <h2>System Authorized</h2>
-            <p>Hardware fingerprint matched. Secure tunnel established with background data engine. Access to core workspace panels is now available.</p>
+            <p>Hardware fingerprint matched. Access to core workspace panels is now available.</p>
+            
+            <div class="script-box">
+                <button class="action-btn" onclick="generateScript()">Generate Custom Script</button>
+                <div class="limit-display" id="dailyLimitText">Daily Limit Used: 0 / 2</div>
             </div>
+        </div>
     </div>
 
     <script>
         const API_BASE_URL = 'http://localhost:3000/api'; 
         let internalTimerLoop = null;
         let globalRemainingMs = 0;
+        let activeKey = '';
+
+        // 🔄 AUTO-LOGIN INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('onlyzens_auth_key');
+            if (savedKey) {
+                // Pre-fill input field and automatically execute check
+                document.getElementById('licenseKeyInput').value = savedKey;
+                silentVerify(savedKey);
+            }
+        });
+
+        async function silentVerify(key) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/verify-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: key })
+                });
+                const data = await response.json();
+                if (response.ok && data.allowed) {
+                    activeKey = key;
+                    document.getElementById('dailyLimitText').innerText = `Daily Limit Used: ${data.generationsToday || 0} / 2`;
+                    handleSuccessfulLogin(data.timeLeftMs);
+                } else {
+                    localStorage.removeItem('onlyzens_auth_key'); // Saved key expired or deleted
+                }
+            } catch (err) {
+                console.error("Auto-login failed to connect to backend engine.");
+            }
+        }
 
         async function submitVerification() {
             const inputField = document.getElementById('licenseKeyInput');
@@ -278,42 +186,60 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: licenseKey })
                 });
-
                 const data = await response.json();
 
                 if (response.ok && data.allowed) {
+                    activeKey = licenseKey;
+                    // 💾 SAVE KEY TO REMEMBER IT NEXT TIME
+                    localStorage.setItem('onlyzens_auth_key', licenseKey);
+                    document.getElementById('dailyLimitText').innerText = `Daily Limit Used: ${data.generationsToday || 0} / 2`;
                     handleSuccessfulLogin(data.timeLeftMs);
                 } else {
                     alert(`ACCESS TERMINATED: ${data.error || 'Authentication Checksum Failure.'}`);
                 }
             } catch (err) {
-                console.error(err);
                 alert("Communication error: Unable to reach secure authentication gatekeeper.");
+            }
+        }
+
+        // FUNCTION TO HANDLE RUNNING SCRIPTS AND DAILY LIMITS
+        async function generateScript() {
+            if (!activeKey) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/use-generation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: activeKey })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert("🎨 Script generation successful! Enjoy your setup.");
+                    // Dynamic math calculation to update used limit display
+                    const used = 2 - data.remaining;
+                    document.getElementById('dailyLimitText').innerText = `Daily Limit Used: ${used} / 2`;
+                } else {
+                    alert(`🛑 LIMIT REACHED: ${data.message}`);
+                }
+            } catch (err) {
+                alert("Could not connect to database limit tracking nodes.");
             }
         }
 
         function handleSuccessfulLogin(sessionTimeMs) {
             globalRemainingMs = sessionTimeMs;
-
             if (window.confetti) {
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
+                confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
             }
-
-            // Fades out opacity AND sets visibility: hidden smoothly via CSS transition
-            const overlay = document.getElementById('authOverlay');
-            overlay.classList.add('authenticated'); 
-            
-            // Fades in the main user workspace content
-            const workspace = document.getElementById('mainWorkspace');
-            workspace.classList.add('loaded');
-
+            document.getElementById('authOverlay').classList.add('authenticated'); 
+            document.getElementById('mainWorkspace').classList.add('loaded');
             startLiveWidgetTimer();
         }
 
         function startLiveWidgetTimer() {
             const timerWidget = document.getElementById('liveTimerWidget');
             const clockDisplay = document.getElementById('countdownClock');
-            
             timerWidget.style.display = 'flex';
             timerWidget.offsetHeight; 
             timerWidget.style.opacity = '1';
@@ -321,43 +247,23 @@
             internalTimerLoop = setInterval(() => {
                 if (globalRemainingMs <= 0) {
                     clearInterval(internalTimerLoop);
-                    clockDisplay.innerText = "EXPIRED";
-                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444';
-                    timerWidget.querySelector('.timer-dot').style.boxShadow = '0 0 10px #ef4444';
-                    alert("Session duration complete. Hardware lock engaged.");
+                    localStorage.removeItem('onlyzens_auth_key');
                     window.location.reload(); 
                     return;
                 }
-
                 globalRemainingMs -= 1000; 
-                
                 const totalSeconds = Math.floor(globalRemainingMs / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
 
-                const hDisplay = String(hours).padStart(2, '0');
-                const mDisplay = String(minutes).padStart(2, '0');
-                const sDisplay = String(seconds).padStart(2, '0');
-
-                clockDisplay.innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
+                clockDisplay.innerText = `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
             }, 1000);
         }
 
-        // Automatic script string format utility handler
         document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            let formatted = "";
-            
-            if (value.startsWith('ZENAI')) {
-                formatted = 'ZENAI';
-                let rest = value.substring(5);
-                if (rest.length > 0) formatted += '-' + rest.substring(0, 4);
-                if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
-                if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
-            } else {
-                formatted = value.substring(0,20);
-            }
+            let formatted = value.startsWith('ZENAI') ? 'ZENAI' + (value.substring(5).length > 0 ? '-' + value.substring(5, 9) : '') + (value.substring(9).length > 0 ? '-' + value.substring(9, 13) : '') + (value.substring(13).length > 0 ? '-' + value.substring(13, 17) : '') : value.substring(0,20);
             e.target.value = formatted;
         });
     </script>

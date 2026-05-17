@@ -10,9 +10,7 @@
             --bg-dark: #09090b;
             --panel-dark: #141416;
             --accent-purple: #a855f7;
-            --accent-green: #10b981; /* Green color for the button */
-            --accent-glow-p: rgba(168, 85, 247, 0.4);
-            --accent-glow-g: rgba(16, 185, 129, 0.4);
+            --accent-glow: rgba(168, 85, 247, 0.4);
             --text-main: #f4f4f5;
             --text-muted: #a1a1aa;
         }
@@ -34,164 +32,133 @@
             justify-content: center;
         }
 
-        /* 🔒 AUTHENTICATION OVERLAY LAYER */
+        /* 🔒 AUTHENTICATION OVERLAY (STAYS ON TOP UNTIL KEY IS VALID) */
         #authOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(9, 9, 11, 0.98);
-            backdrop-filter: blur(15px);
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(12px);
             z-index: 9999;
             display: flex;
-            flex-direction: column; /* Stack Title above Card */
             align-items: center;
             justify-content: center;
-            transition: opacity 0.8s ease, visibility 0.8s ease; /* Slow fade out */
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
-        /* ⬇️ TITLE ANIMATION (Slide Down) */
-        .portal-title {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            letter-spacing: 2px;
-            font-weight: 800;
-            color: var(--accent-purple);
-            text-shadow: 0 0 20px var(--accent-glow-p);
-            
-            /* Apply Slide Down Animation */
-            animation: slideDownIn 1s ease forwards;
-            opacity: 0; /* Start invisible */
-        }
-
-        .portal-title span {
-            color: var(--text-main);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-left: 10px;
-            text-shadow: none;
-        }
-
-        /* ⬆️ CARD ANIMATION (Slide Up) */
         .auth-card {
             background: var(--panel-dark);
             border: 1px solid #27272a;
             padding: 2.5rem;
-            border-radius: 20px;
+            border-radius: 16px;
             width: 100%;
-            max-width: 500px;
+            max-width: 440px;
             text-align: center;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-            
-            /* Apply Slide Up Animation */
-            animation: slideUpIn 1s ease forwards;
-            animation-delay: 0.2s; /* Slight staggered entry */
-            opacity: 0; /* Start invisible */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-card h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .auth-card h1 span {
+            color: var(--accent-purple);
+            text-shadow: 0 0 15px var(--accent-glow);
         }
 
         .auth-card p {
             color: var(--text-muted);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             margin-bottom: 2rem;
-            letter-spacing: 0.5px;
         }
 
-        /* 🟢 INPUT + GREEN BUTTON LAYOUT (Horizontal inline) */
-        .inline-input-group {
-            display: flex;
-            gap: 12px; /* Gap between input and button */
-            align-items: center;
-            justify-content: center;
+        .input-group {
+            margin-bottom: 1.5rem;
         }
 
         .auth-card input {
-            flex-grow: 1; /* Input takes available space */
+            width: 100%;
             background: #09090b;
             border: 1px solid #3f3f46;
-            padding: 0.9rem 1.2rem;
-            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
             color: white;
-            font-size: 1.05rem;
+            font-size: 1rem;
             text-align: center;
             letter-spacing: 2px;
             outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: border-color 0.3s ease;
         }
 
         .auth-card input:focus {
             border-color: var(--accent-purple);
-            box-shadow: 0 0 15px var(--accent-glow-p);
+            box-shadow: 0 0 10px var(--accent-glow);
         }
 
         .auth-btn {
-            background: var(--accent-green); /* Green Button */
+            width: 100%;
+            background: var(--accent-purple);
             color: white;
             border: none;
-            padding: 0.9rem 1.8rem;
-            border-radius: 10px;
+            padding: 0.8rem;
+            border-radius: 8px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.2s ease, background 0.3s ease;
         }
 
         .auth-btn:hover {
-            background: #059669; /* Darker green */
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--accent-glow-g);
+            background: #9333ea;
+            transform: translateY(-1px);
         }
 
-        /* Utility State: Active Fade Out */
-        #authOverlay.authenticated {
-            opacity: 0;
-            pointer-events: none; /* Disable interaction during transition */
-        }
-
-        /* ----------------------------------------------------------- */
-
-        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET (Top Right) */
+        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET */
         #liveTimerWidget {
             position: fixed;
-            top: 25px;
-            right: 25px;
-            background: rgba(20, 20, 22, 0.9);
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 22, 0.85);
             border: 1px solid #27272a;
-            backdrop-filter: blur(10px);
-            padding: 0.7rem 1.4rem;
-            border-radius: 40px;
+            backdrop-filter: blur(8px);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            font-size: 1rem;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
             z-index: 9000;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-            
-            /* Hidden until logic triggers it */
-            display: none; 
-            opacity: 0;
-            transition: opacity 1s ease 0.5s; /* Fade in slowly after overlay starts fading */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none; /* Hidden until login */
         }
 
         .timer-dot {
-            width: 9px;
-            height: 9px;
-            background: var(--accent-green);
+            width: 8px;
+            height: 8px;
+            background: #10b981;
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-green);
-            animation: pulseDot 2.5s infinite;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 2s infinite;
         }
 
-        /* 🖥️ MAIN SUITE CONTENT DISCOVERY AREA */
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        /* 🖥️ MAIN CONTENT PANEL DISCOVERY AREA */
         #mainWorkspace {
-            text-align: center;
             opacity: 0;
-            transform: scale(0.96);
-            /* Slower transition that starts after overlay exit has begun */
-            transition: opacity 1s ease 0.6s, transform 1s ease 0.6s; 
+            transform: scale(0.98);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            text-align: center;
         }
 
         #mainWorkspace.loaded {
@@ -200,36 +167,12 @@
         }
 
         .dashboard-container h2 {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
         }
 
         .dashboard-container p {
             color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* 🛠️ DEFINITIONS: KEYFRAME ANIMATIONS */
-        @keyframes slideDownIn {
-            from { opacity: 0; transform: translateY(-60px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideUpIn {
-            from { opacity: 0; transform: translateY(60px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulseDot {
-            0% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
-            50% { opacity: 1; box-shadow: 0 0 12px var(--accent-green); }
-            100% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
         }
 
         /* Utilities */
@@ -239,41 +182,40 @@
 <body>
 
     <div id="authOverlay">
-        <div class="portal-title">OnlyZens <span>ai</span></div>
-        
         <div class="auth-card">
-            <p>Verification module active. Input dynamic access key to authorize session.</p>
-            
-            <div class="inline-input-group">
-                <input type="text" id="licenseKeyInput" placeholder="ZENAI-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20">
-                <button class="auth-btn" onclick="submitVerification()">Verify</button>
+            <h1>ONLYZENS <span>AI</span></h1>
+            <p>Enter your license key to verify hardware authentication</p>
+            <div class="input-group">
+                <input type="text" id="licenseKeyInput" placeholder="ZENAI-XXXX-XXXX-XXXX" autocomplete="off">
             </div>
+            <button class="auth-btn" onclick="submitVerification()">Verify License</button>
         </div>
     </div>
 
     <div id="liveTimerWidget">
         <div class="timer-dot"></div>
-        <span style="color: var(--text-muted); font-weight: 400">Session Remaining:</span>
-        <span id="countdownClock" style="color: #fff">00h 00m 00s</span>
+        <span style="color: var(--text-muted)">Session:</span>
+        <span id="countdownClock">00h 00m 00s</span>
     </div>
 
     <div id="mainWorkspace">
         <div class="dashboard-container">
-            <h2>System Authorized</h2>
-            <p>Hardware fingerprint matched. Secure tunnel established with background data engine. Access to core workspace panels is now available.</p>
+            <h2>Welcome to OnlyZens AI Dashboard</h2>
+            <p>Your access has been successfully validated. All background engines are running optimally.</p>
             </div>
     </div>
 
     <script>
+        // Adjust this if your server port changes, since running locally use localhost:3000
         const API_BASE_URL = 'http://localhost:3000/api'; 
         let internalTimerLoop = null;
         let globalRemainingMs = 0;
 
         async function submitVerification() {
             const inputField = document.getElementById('licenseKeyInput');
-            const licenseKey = inputField.value.trim().toUpperCase(); // Format case automatically
+            const licenseKey = inputField.value.trim();
 
-            if (!licenseKey) return alert("System requires an access license string.");
+            if (!licenseKey) return alert("Please enter an access license string.");
 
             try {
                 const response = await fetch(`${API_BASE_URL}/verify-key`, {
@@ -285,73 +227,57 @@
                 const data = await response.json();
 
                 if (response.ok && data.allowed) {
-                    // Start Exit Transition Sequence
-                    handleSuccessfulLogin(data.timeLeftMs);
+                    // Success effects!
+                    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff'] });
+                    
+                    globalRemainingMs = data.timeLeftMs;
+
+                    // Hide login card completely
+                    const overlay = document.getElementById('authOverlay');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.classList.add('hidden'), 500);
+
+                    // Initialize and transition dashboard screen view
+                    const workspace = document.getElementById('mainWorkspace');
+                    workspace.classList.add('loaded');
+
+                    // Fire up the interactive widget countdown clock
+                    startLiveWidgetTimer();
                 } else {
-                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Checksum Failure.'}`);
+                    alert(`Access Denied: ${data.error || 'Invalid Validation Parameters.'}`);
                 }
             } catch (err) {
                 console.error(err);
-                alert("Communication error: Unable to reach secure authentication gatekeeper.");
+                alert("Failed to communicate with authentication gatekeeper engine.");
             }
-        }
-
-        function handleSuccessfulLogin(sessionTimeMs) {
-            globalRemainingMs = sessionTimeMs;
-
-            // 1. CONFETTI EFFECT (Optional, but looks clean on success)
-            if (window.confetti) {
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
-            }
-
-            // 2. FADE OUT OVERLAY (Triggers slower 0.8s exit animation)
-            const overlay = document.getElementById('authOverlay');
-            overlay.classList.add('authenticated'); // Starts exit animation
-            
-            // Wait for fade animation, then remove completely from DOM flow
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 850);
-
-            // 3. FADE IN MAIN DASHBOARD (Staggered transition defined in CSS)
-            const workspace = document.getElementById('mainWorkspace');
-            workspace.classList.add('loaded');
-
-            // 4. FIRE UP INTERACTIVE TIMER WIDGET
-            startLiveWidgetTimer();
         }
 
         function startLiveWidgetTimer() {
             const timerWidget = document.getElementById('liveTimerWidget');
             const clockDisplay = document.getElementById('countdownClock');
             
-            // Show widget frame (CSS transition handles fade-in stagger)
+            // Un-hide the widget frame
             timerWidget.style.display = 'flex';
-            // Force reflow for transition
-            timerWidget.offsetHeight; 
-            timerWidget.style.opacity = '1';
 
-            // Establish tick loop (running every 1 second)
+            // Establish tick loop intervals running every single second (1000ms)
             internalTimerLoop = setInterval(() => {
                 if (globalRemainingMs <= 0) {
                     clearInterval(internalTimerLoop);
-                    clockDisplay.innerText = "EXPIRED";
-                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444'; // Turn red
-                    timerWidget.querySelector('.timer-dot').style.boxShadow = '0 0 10px #ef4444';
-                    alert("Session duration complete. Hardware lock engaged.");
-                    window.location.reload(); // Lock system down instantly
+                    clockDisplay.innerText = "Expired";
+                    alert("Your license duration has run out. Session terminated.");
+                    window.location.reload(); // Lock back down instantly
                     return;
                 }
 
-                globalRemainingMs -= 1000; // Deduct 1 second
+                globalRemainingMs -= 1000;
                 
-                // Format display logic
+                // Formatting math calculations
                 const totalSeconds = Math.floor(globalRemainingMs / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
 
-                // Leading zero padding (05h instead of 5h)
+                // Pad numbers with leading zeros for visual clean alignment (e.g. 05m instead of 5m)
                 const hDisplay = String(hours).padStart(2, '0');
                 const mDisplay = String(minutes).padStart(2, '0');
                 const sDisplay = String(seconds).padStart(2, '0');
@@ -359,24 +285,6 @@
                 clockDisplay.innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
             }, 1000);
         }
-
-        // Auto-add dashes as user types (Layout enhancement)
-        document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
-            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            let formatted = "";
-            
-            if (value.startsWith('ZENAI')) {
-                formatted = 'ZENAI';
-                let rest = value.substring(5);
-                if (rest.length > 0) formatted += '-' + rest.substring(0, 4);
-                if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
-                if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
-            } else {
-                // If they don't type ZENAI first, allow free input but cap at total length
-                formatted = value.substring(0,20);
-            }
-            e.target.value = formatted;
-        });
     </script>
 </body>
 </html>

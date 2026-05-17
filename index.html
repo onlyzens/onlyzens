@@ -82,9 +82,64 @@ main {
     </footer>
 
     <script>
-        document.getElementById('generateBtn').addEventListener('click', () => {
-            const promptValue = document.getElementById('prompt').value;
-            if(!promptValue) return alert('Please enter a script request first!');
-            
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const promptInput = document.getElementById('prompt');
             const codeOutput = document.getElementById('codeOutput');
-            codeOutput.innerText = `// Generating for: "${promptValue}"...\n\n// Next up: We will connect this
+            const generateBtn = document.getElementById('generateBtn');
+            
+            const userPrompt = promptInput.value.trim();
+            if(!userPrompt) return alert('Please enter a script request first!');
+            
+            // Show loading state
+            generateBtn.innerText = "Generating...";
+            generateBtn.disabled = true;
+            codeOutput.innerText = "// Gemini is writing your GPC script...\n// Please wait a few seconds.";
+
+            // System instructions to give context to Gemini on how to format GPC code
+            const systemInstruction = `You are an elite Cronus Zen GPC scripting AI. 
+            Your task is to generate valid, working GPC code based on the user request.
+            Rules:
+            1. ONLY output raw GPC code inside a single code block. No explanations, no markdown introduction text.
+            2. Always use a main {} block.
+            3. Use proper GPC syntax like get_val(), set_val(), combo_run(), wait().
+            4. If the user asks for values (like anti-recoil strength), ensure they are defined as variables or constants at the top.`;
+
+            try {
+                // This calls your secure Netlify backend function
+                const response = await fetch('/.netlify/functions/generate-script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: userPrompt,
+                        system: systemInstruction
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    codeOutput.innerText = `// Error from AI backend:\n// ${data.error}`;
+                } else {
+                    // Display the freshly generated GPC script
+                    codeOutput.innerText = data.script;
+                }
+
+            } catch (error) {
+                codeOutput.innerText = "// Connection Error!\n// Make sure your Netlify site is deployed and running.";
+                console.error(error);
+            } finally {
+                // Reset button state
+                generateBtn.innerText = "Generate";
+                generateBtn.disabled = false;
+            }
+        });
+
+        // Copy Code Button Logic
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const textToCopy = document.getElementById('codeOutput').innerText;
+            navigator.clipboard.writeText(textToCopy);
+            alert('Code copied to clipboard!');
+        });
+    </script>
+</body>
+</html>

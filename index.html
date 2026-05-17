@@ -10,7 +10,7 @@
             --bg-dark: #09090b;
             --panel-dark: #141416;
             --accent-purple: #a855f7;
-            --accent-green: #10b981; /* Green color for the button */
+            --accent-green: #10b981;
             --accent-glow-p: rgba(168, 85, 247, 0.4);
             --accent-glow-g: rgba(16, 185, 129, 0.4);
             --text-main: #f4f4f5;
@@ -45,10 +45,10 @@
             backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex;
-            flex-direction: column; /* Stack Title above Card */
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.8s ease, visibility 0.8s ease; /* Slow fade out */
+            transition: opacity 0.8s ease, visibility 0.8s ease; /* Smoothly transitions both opacity and visibility */
         }
 
         /* ⬇️ TITLE ANIMATION (Slide Down) */
@@ -60,9 +60,8 @@
             color: var(--accent-purple);
             text-shadow: 0 0 20px var(--accent-glow-p);
             
-            /* Apply Slide Down Animation */
             animation: slideDownIn 1s ease forwards;
-            opacity: 0; /* Start invisible */
+            opacity: 0;
         }
 
         .portal-title span {
@@ -84,10 +83,9 @@
             text-align: center;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
             
-            /* Apply Slide Up Animation */
             animation: slideUpIn 1s ease forwards;
-            animation-delay: 0.2s; /* Slight staggered entry */
-            opacity: 0; /* Start invisible */
+            animation-delay: 0.2s;
+            opacity: 0;
         }
 
         .auth-card p {
@@ -97,16 +95,16 @@
             letter-spacing: 0.5px;
         }
 
-        /* 🟢 INPUT + GREEN BUTTON LAYOUT (Horizontal inline) */
+        /* 🟢 INPUT + GREEN BUTTON LAYOUT */
         .inline-input-group {
             display: flex;
-            gap: 12px; /* Gap between input and button */
+            gap: 12px;
             align-items: center;
             justify-content: center;
         }
 
         .auth-card input {
-            flex-grow: 1; /* Input takes available space */
+            flex-grow: 1;
             background: #09090b;
             border: 1px solid #3f3f46;
             padding: 0.9rem 1.2rem;
@@ -125,7 +123,7 @@
         }
 
         .auth-btn {
-            background: var(--accent-green); /* Green Button */
+            background: var(--accent-green);
             color: white;
             border: none;
             padding: 0.9rem 1.8rem;
@@ -139,20 +137,21 @@
         }
 
         .auth-btn:hover {
-            background: #059669; /* Darker green */
+            background: #059669;
             transform: translateY(-2px);
             box-shadow: 0 0 15px var(--accent-glow-g);
         }
 
-        /* Utility State: Active Fade Out */
+        /* Utility State: Active Fade Out (FIXED BY ADDING VISIBILITY HIDDEN) */
         #authOverlay.authenticated {
             opacity: 0;
-            pointer-events: none; /* Disable interaction during transition */
+            visibility: hidden; /* Drops the black glass wall completely out of the DOM layout */
+            pointer-events: none;
         }
 
         /* ----------------------------------------------------------- */
 
-        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET (Top Right) */
+        /* ⏳ FLOATING COUNTDOWN TIMER WIDGET */
         #liveTimerWidget {
             position: fixed;
             top: 25px;
@@ -170,10 +169,9 @@
             z-index: 9000;
             box-shadow: 0 6px 16px rgba(0,0,0,0.4);
             
-            /* Hidden until logic triggers it */
             display: none; 
             opacity: 0;
-            transition: opacity 1s ease 0.5s; /* Fade in slowly after overlay starts fading */
+            transition: opacity 1s ease 0.5s;
         }
 
         .timer-dot {
@@ -190,7 +188,6 @@
             text-align: center;
             opacity: 0;
             transform: scale(0.96);
-            /* Slower transition that starts after overlay exit has begun */
             transition: opacity 1s ease 0.6s, transform 1s ease 0.6s; 
         }
 
@@ -271,7 +268,7 @@
 
         async function submitVerification() {
             const inputField = document.getElementById('licenseKeyInput');
-            const licenseKey = inputField.value.trim().toUpperCase(); // Format case automatically
+            const licenseKey = inputField.value.trim().toUpperCase();
 
             if (!licenseKey) return alert("System requires an access license string.");
 
@@ -285,7 +282,6 @@
                 const data = await response.json();
 
                 if (response.ok && data.allowed) {
-                    // Start Exit Transition Sequence
                     handleSuccessfulLogin(data.timeLeftMs);
                 } else {
                     alert(`ACCESS TERMINATED: ${data.error || 'Authentication Checksum Failure.'}`);
@@ -299,25 +295,18 @@
         function handleSuccessfulLogin(sessionTimeMs) {
             globalRemainingMs = sessionTimeMs;
 
-            // 1. CONFETTI EFFECT (Optional, but looks clean on success)
             if (window.confetti) {
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
             }
 
-            // 2. FADE OUT OVERLAY (Triggers slower 0.8s exit animation)
+            // Fades out opacity AND sets visibility: hidden smoothly via CSS transition
             const overlay = document.getElementById('authOverlay');
-            overlay.classList.add('authenticated'); // Starts exit animation
+            overlay.classList.add('authenticated'); 
             
-            // Wait for fade animation, then remove completely from DOM flow
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 850);
-
-            // 3. FADE IN MAIN DASHBOARD (Staggered transition defined in CSS)
+            // Fades in the main user workspace content
             const workspace = document.getElementById('mainWorkspace');
             workspace.classList.add('loaded');
 
-            // 4. FIRE UP INTERACTIVE TIMER WIDGET
             startLiveWidgetTimer();
         }
 
@@ -325,33 +314,28 @@
             const timerWidget = document.getElementById('liveTimerWidget');
             const clockDisplay = document.getElementById('countdownClock');
             
-            // Show widget frame (CSS transition handles fade-in stagger)
             timerWidget.style.display = 'flex';
-            // Force reflow for transition
             timerWidget.offsetHeight; 
             timerWidget.style.opacity = '1';
 
-            // Establish tick loop (running every 1 second)
             internalTimerLoop = setInterval(() => {
                 if (globalRemainingMs <= 0) {
                     clearInterval(internalTimerLoop);
                     clockDisplay.innerText = "EXPIRED";
-                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444'; // Turn red
+                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444';
                     timerWidget.querySelector('.timer-dot').style.boxShadow = '0 0 10px #ef4444';
                     alert("Session duration complete. Hardware lock engaged.");
-                    window.location.reload(); // Lock system down instantly
+                    window.location.reload(); 
                     return;
                 }
 
-                globalRemainingMs -= 1000; // Deduct 1 second
+                globalRemainingMs -= 1000; 
                 
-                // Format display logic
                 const totalSeconds = Math.floor(globalRemainingMs / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
 
-                // Leading zero padding (05h instead of 5h)
                 const hDisplay = String(hours).padStart(2, '0');
                 const mDisplay = String(minutes).padStart(2, '0');
                 const sDisplay = String(seconds).padStart(2, '0');
@@ -360,7 +344,7 @@
             }, 1000);
         }
 
-        // Auto-add dashes as user types (Layout enhancement)
+        // Automatic script string format utility handler
         document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             let formatted = "";
@@ -372,7 +356,6 @@
                 if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
                 if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
             } else {
-                // If they don't type ZENAI first, allow free input but cap at total length
                 formatted = value.substring(0,20);
             }
             e.target.value = formatted;

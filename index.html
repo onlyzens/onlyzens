@@ -29,7 +29,8 @@
             justify-content: center;
         }
 
-        #authOverlay {
+        /* 🔒 FRESH CLEAN KEY PROMPT INPUT SCREEN */
+        #loginOverlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(9, 9, 11, 0.98);
@@ -75,7 +76,7 @@
 
         .auth-btn:hover, .action-btn:hover { background: #059669; transform: translateY(-2px); }
 
-        #authOverlay.authenticated { opacity: 0; visibility: hidden; pointer-events: none; }
+        #loginOverlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
         /* ⏳ TOP RIGHT META CONTROLS WIDGET */
         #metaStatusWidget {
@@ -92,7 +93,23 @@
         .timer-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
         .limit-row { font-size: 0.85rem; color: var(--accent-purple); font-weight: 700; margin-top: 2px; letter-spacing: 0.5px; }
 
-        /* 🖥️ CLEAN MAIN WORKSPACE */
+        /* 🚪 BOTTOM RIGHT LOGOUT CONTAINER */
+        #logoutContainer {
+            position: fixed; bottom: 25px; right: 25px;
+            z-index: 9000; display: none; opacity: 0; transition: opacity 0.5s ease;
+        }
+
+        .logout-btn {
+            background: rgba(244, 63, 94, 0.1); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.4);
+            padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #f43f5e; color: white; box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); transform: translateY(-1px);
+        }
+
+        /* 🖥️ MAIN WORKSPACE CONTAINER */
         #mainWorkspace { text-align: center; opacity: 0; transform: scale(0.98); transition: opacity 0.5s ease, transform 0.5s ease; }
         #mainWorkspace.loaded { opacity: 1; transform: scale(1); }
 
@@ -101,7 +118,7 @@
 </head>
 <body>
 
-    <div id="authOverlay">
+    <div id="loginOverlay">
         <div class="portal-title">OnlyZens <span>ai</span></div>
         <div class="auth-card">
             <p>Verification module active. Input dynamic access key to authorize session.</p>
@@ -127,6 +144,10 @@
         </div>
     </div>
 
+    <div id="logoutContainer">
+        <button class="logout-btn" onclick="triggerSessionLogout()">Logout</button>
+    </div>
+
     <script>
         const API_BASE_URL = 'http://localhost:3000/api'; 
         let internalTimerLoop = null;
@@ -134,7 +155,7 @@
         let activeKey = '';
         let currentGenerationsLeft = 2;
 
-        // 🔄 AUTO-LOGIN INITIALIZATION
+        // 🔄 AUTO-LOGIN HOOK
         window.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('onlyzens_auth_key');
             if (savedKey) {
@@ -190,11 +211,9 @@
             }
         }
 
-        // UPDATED SCRIPT GENERATION FUNCTION (STOPS CLICK AT 0 LEFT)
         async function generateScript() {
             if (!activeKey) return;
 
-            // Strict client-side block check if limit already hit
             if (currentGenerationsLeft <= 0) {
                 alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
                 return;
@@ -234,12 +253,11 @@
             if (isAdmin) {
                 currentGenerationsLeft = 999;
                 document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+                setBtnDisabledState(false);
             } else {
                 currentGenerationsLeft = 2 - (usedCount || 0);
                 document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
-                if (currentGenerationsLeft <= 0) {
-                    setBtnDisabledState(true);
-                }
+                setBtnDisabledState(currentGenerationsLeft <= 0);
             }
         }
 
@@ -260,8 +278,14 @@
             if (window.confetti) {
                 confetti({ particleCount: 80, spread: 50, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
             }
-            document.getElementById('authOverlay').classList.add('authenticated'); 
+            document.getElementById('loginOverlay').classList.add('hidden'); 
             document.getElementById('mainWorkspace').classList.add('loaded');
+            
+            // Show bottom right logout layout controls
+            const logoutContainer = document.getElementById('logoutContainer');
+            logoutContainer.style.display = 'block';
+            setTimeout(() => logoutContainer.style.opacity = '1', 50);
+
             startLiveWidgetTimer();
         }
 
@@ -272,11 +296,11 @@
             statusWidget.offsetHeight; 
             statusWidget.style.opacity = '1';
 
+            if (internalTimerLoop) clearInterval(internalTimerLoop);
+
             internalTimerLoop = setInterval(() => {
                 if (globalRemainingMs <= 0) {
-                    clearInterval(internalTimerLoop);
-                    localStorage.removeItem('onlyzens_auth_key');
-                    window.location.reload(); 
+                    triggerSessionLogout();
                     return;
                 }
                 globalRemainingMs -= 1000; 
@@ -287,6 +311,20 @@
 
                 clockDisplay.innerText = `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
             }, 1000);
+        }
+
+        // 🚪 MANUAL SESSION TERMINATOR
+        function triggerSessionLogout() {
+            clearInterval(internalTimerLoop);
+            localStorage.removeItem('onlyzens_auth_key');
+            activeKey = '';
+            
+            // UI Component resets
+            document.getElementById('licenseKeyInput').value = '';
+            document.getElementById('metaStatusWidget').style.display = 'none';
+            document.getElementById('logoutContainer').style.display = 'none';
+            document.getElementById('mainWorkspace').classList.remove('loaded');
+            document.getElementById('loginOverlay').classList.remove('hidden');
         }
 
         document.getElementById('licenseKeyInput').addEventListener('input', function (e) {

@@ -5,23 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OnlyZens AI | GPC Script Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         .neon-glow { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
         .neon-text { text-shadow: 0 0 8px rgba(168, 85, 247, 0.6); }
+
+        /* 🔄 Smooth tab panel transitions */
+        .panel-animate {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .panel-animate.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ⏳ Line-based Loading Spinner Animation */
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(168, 85, 247, 0.1);
+            border-radius: 50%;
+            border-top-color: #a855f7;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen font-sans flex flex-col justify-between">
 
-    <header class="border-b border-neutral-800 bg-neutral-900/50 backdrop-blur px-6 py-4 flex justify-between items-center">
+    <div id="authOverlay" class="fixed inset-0 bg-neutral-950/98 backdrop-blur-xl z-[9999] flex flex-col items-center justify-center transition-all duration-700">
+        <div id="authFormFrame" class="w-full max-w-md px-6 text-center flex flex-col items-center">
+            <span class="text-4xl font-black tracking-wider text-purple-500 neon-text mb-8">ONLYZENS <span class="text-white font-medium text-2xl">AI</span></span>
+            
+            <div class="w-full bg-neutral-900 border border-neutral-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-4">
+                <p class="text-sm text-neutral-400">Verification module active. Input dynamic access key to authorize your hardware tunnel session.</p>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="licenseKeyInput" placeholder="ZENAI-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20"
+                        class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-center tracking-widest text-white uppercase font-mono">
+                    <button onclick="submitVerification()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-3 rounded-lg text-sm transition-all shadow-lg cursor-pointer">
+                        Verify
+                    </button>
+                </div>
+
+                <p class="text-xs text-neutral-500 mt-2">
+                    Don't have a key? <a href="https://discord.gg/DMYU7XyRV8" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors font-medium underline decoration-purple-500/40">Purchase one here</a>
+                </p>
+            </div>
+        </div>
+
+        <div id="authLoadingFrame" class="hidden flex flex-col items-center gap-4">
+            <div class="loader-spinner"></div>
+            <p class="text-xs font-mono text-purple-400 tracking-widest uppercase">Matching hardware fingerprint...</p>
+        </div>
+    </div>
+
+    <header class="border-b border-neutral-800 bg-neutral-900/50 backdrop-blur px-6 py-4 flex justify-between items-center z-40">
         <div class="flex items-center gap-2">
             <span class="text-2xl font-black tracking-wider text-purple-500 neon-text">ONLYZENS <span class="text-white font-medium text-lg">AI</span></span>
         </div>
-        <div class="text-sm bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
-            v1.3 Production
+        
+        <div class="flex items-center gap-4 text-xs">
+            <div id="sessionTimerDisplay" class="hidden items-center gap-2 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                <span class="text-neutral-400">Session Remaining:</span>
+                <span id="countdownClock" class="font-mono text-white font-bold">00h 00m 00s</span>
+                <span class="text-neutral-600 mx-1">|</span>
+                <span id="dailyLimitText" class="text-purple-400 font-bold">Generations Left: 2</span>
+            </div>
+            <div class="bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
+                v1.3 Production
+            </div>
         </div>
     </header>
 
-    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 z-30">
         
         <div class="lg:col-span-3 bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-4 h-fit">
             <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Zen AI Engine</h2>
@@ -37,28 +101,28 @@
         <div class="lg:col-span-9 flex flex-col gap-6">
             
             <div class="flex gap-2 border-b border-neutral-800 pb-1">
-                <button id="tabGenerate" class="px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all">
+                <button id="tabGenerate" class="px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all cursor-pointer">
                     Create New Script
                 </button>
-                <button id="tabModify" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all">
+                <button id="tabModify" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all cursor-pointer">
                     Modify Existing .GPC
                 </button>
             </div>
 
-            <div id="panelGenerate" class="flex flex-col gap-4">
+            <div id="panelGenerate" class="panel-animate active flex flex-col gap-4">
                 <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 neon-glow">
                     <label class="block text-sm font-semibold text-neutral-300 mb-2">Build a script from scratch:</label>
                     <div class="flex flex-col sm:flex-row gap-3">
                         <input type="text" id="genPrompt" placeholder="Describe what you want the script to do..." 
                             class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
-                        <button id="btnGenRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
+                        <button id="btnGenRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg cursor-pointer">
                             Generate
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="panelModify" class="flex flex-col gap-4 hidden">
+            <div id="panelModify" class="panel-animate hidden flex flex-col gap-4">
                 <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col gap-4 neon-glow">
                     <div>
                         <label class="block text-sm font-semibold text-neutral-300 mb-2">Paste your existing .GPC source code:</label>
@@ -70,7 +134,7 @@
                         <div class="flex flex-col sm:flex-row gap-3">
                             <input type="text" id="modifyPrompt" placeholder="e.g., 'Add a toggle using hold D-PAD up + Options'" 
                                 class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
-                            <button id="btnModRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
+                            <button id="btnModRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg cursor-pointer">
                                 Refactor Script
                             </button>
                         </div>
@@ -86,7 +150,7 @@
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
                         <span class="text-xs text-neutral-400 ml-2 font-mono">output_workspace.gpc</span>
                     </div>
-                    <button id="copyBtn" class="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-3 py-1.5 rounded font-medium transition-all">
+                    <button id="copyBtn" class="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-3 py-1.5 rounded font-medium transition-all cursor-pointer">
                         Copy Code
                     </button>
                 </div>
@@ -96,66 +160,265 @@
         </div>
     </main>
 
-    <footer class="border-t border-neutral-900 text-center py-4 text-xs text-neutral-600">
-        &copy; 2026 OnlyZens AI.
+    <footer class="border-t border-neutral-900 bg-neutral-950 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-600 z-40">
+        <div>&copy; 2026 OnlyZens AI.</div>
+        
+        <div class="flex items-center gap-3">
+            <button id="logoutBtn" onclick="triggerSessionLogout()" class="hidden bg-rose-950/30 hover:bg-rose-950/80 text-rose-400 border border-rose-900/50 font-bold px-4 py-2 rounded-lg transition-all cursor-pointer uppercase tracking-wider text-[10px]">
+                Sign Out
+            </button>
+            <a href="https://discord.gg/DMYU7XyRV8" target="_blank" class="bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/30 font-bold px-4 py-2 rounded-lg transition-all tracking-wider text-[10px] flex items-center gap-1.5 uppercase shadow-md">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a74.37,74.37,0,0,0,6.71-10.93,68.6,68.6,0,0,1-10.54-5.12c.88-.65,1.72-1.33,2.53-2a75.49,75.49,0,0,0,72.71,0c.81.71,1.65,1.39,2.53,2a68.42,68.42,0,0,1-10.54,5.12,74.26,74.26,0,0,0,6.71,10.93,105.54,105.54,0,0,0,31.05-18.83C129.83,48,124.15,25.26,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z"/></svg>
+                Discord
+            </a>
+        </div>
     </footer>
 
     <script>
-        // Tab switching engine
+        const API_BASE_URL = 'http://localhost:3000/api'; 
+        let internalTimerLoop = null;
+        let globalRemainingMs = 0;
+        let activeKey = '';
+        let currentGenerationsLeft = 2;
+        let isUserAdmin = false;
+
+        // Tab engine mapping targets
         const tabGen = document.getElementById('tabGenerate');
         const tabMod = document.getElementById('tabModify');
         const panelGen = document.getElementById('panelGenerate');
         const panelMod = document.getElementById('panelModify');
 
         tabGen.addEventListener('click', () => {
-            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
-            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
-            panelGen.classList.remove('hidden');
-            panelMod.classList.add('hidden');
+            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all cursor-pointer";
+            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all cursor-pointer";
+            
+            panelMod.classList.remove('active');
+            setTimeout(() => {
+                panelMod.classList.add('hidden');
+                panelGen.classList.remove('hidden');
+                panelGen.offsetHeight; 
+                panelGen.classList.add('active');
+            }, 150);
         });
 
         tabMod.addEventListener('click', () => {
-            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
-            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
-            panelMod.classList.remove('hidden');
-            panelGen.classList.add('hidden');
+            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all cursor-pointer";
+            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all cursor-pointer";
+            
+            panelGen.classList.remove('active');
+            setTimeout(() => {
+                panelGen.classList.add('hidden');
+                panelMod.classList.remove('hidden');
+                panelMod.offsetHeight; 
+                panelMod.classList.add('active');
+            }, 150);
         });
 
-        // 🧠 PERMANENT AI BLUEPRINT MEMORY
-        // Paste your flawless, 100% working GPC example script inside the backticks below:
+        // Memory load verification engine
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('onlyzens_auth_key');
+            if (savedKey) {
+                document.getElementById('licenseKeyInput').value = savedKey;
+                silentVerify(savedKey);
+            }
+        });
+
+        async function silentVerify(key) {
+            toggleOverlayLoaderState(true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/verify-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: key })
+                });
+                const data = await response.json();
+                if (response.ok && data.allowed) {
+                    activeKey = key;
+                    isUserAdmin = data.isAdmin;
+                    updateGenerationUI(data.generationsToday, data.isAdmin);
+                    handleSuccessfulLogin(data.timeLeftMs);
+                } else {
+                    localStorage.removeItem('onlyzens_auth_key');
+                    toggleOverlayLoaderState(false);
+                }
+            } catch (err) {
+                console.error("Auto-login link initialization execution failure.");
+                toggleOverlayLoaderState(false);
+            }
+        }
+
+        async function submitVerification() {
+            const inputField = document.getElementById('licenseKeyInput');
+            const licenseKey = inputField.value.trim().toUpperCase(); 
+
+            if (!licenseKey) return alert("System verification requires a valid license key entry.");
+
+            toggleOverlayLoaderState(true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/verify-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: licenseKey })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.allowed) {
+                    activeKey = licenseKey;
+                    isUserAdmin = data.isAdmin;
+                    localStorage.setItem('onlyzens_auth_key', licenseKey);
+                    updateGenerationUI(data.generationsToday, data.isAdmin);
+                    handleSuccessfulLogin(data.timeLeftMs);
+                } else {
+                    toggleOverlayLoaderState(false);
+                    alert(`ACCESS DENIED: ${data.error || 'Authentication layer rejection.'}`);
+                }
+            } catch (err) {
+                console.error(err);
+                toggleOverlayLoaderState(false);
+                alert("Communication error: Unable to map endpoint connection payload.");
+            }
+        }
+
+        function toggleOverlayLoaderState(showLoader) {
+            const form = document.getElementById('authFormFrame');
+            const loader = document.getElementById('authLoadingFrame');
+            if (showLoader) {
+                form.classList.add('hidden');
+                loader.classList.remove('hidden');
+            } else {
+                loader.classList.add('hidden');
+                form.classList.remove('hidden');
+            }
+        }
+
+        function handleSuccessfulLogin(sessionTimeMs) {
+            globalRemainingMs = sessionTimeMs;
+
+            if (window.confetti) {
+                confetti({ particleCount: 140, spread: 75, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
+            }
+
+            // Close gate layout cleanly
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+
+            document.getElementById('sessionTimerDisplay').classList.remove('hidden');
+            document.getElementById('sessionTimerDisplay').classList.add('flex');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+
+            startLiveWidgetTimer();
+        }
+
+        function startLiveWidgetTimer() {
+            const clockDisplay = document.getElementById('countdownClock');
+            if (internalTimerLoop) clearInterval(internalTimerLoop);
+
+            internalTimerLoop = setInterval(() => {
+                // Admin bypass loop logic
+                if (isUserAdmin) {
+                    clockDisplay.innerText = "∞";
+                    return;
+                }
+
+                if (globalRemainingMs <= 0) {
+                    clearInterval(internalTimerLoop);
+                    clockDisplay.innerText = "EXPIRED";
+                    alert("Session duration finished. Hardware interface lock engaged.");
+                    triggerSessionLogout();
+                    return;
+                }
+
+                globalRemainingMs -= 1000; 
+                
+                const totalSeconds = Math.floor(globalRemainingMs / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                clockDisplay.innerText = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+            }, 1000);
+        }
+
+        // 🧠 AI ENGINE REFERENCE HOOK SYSTEM
         const goldenTrainedGpc = `PASTE_YOUR_GOLDEN_GPC_SCRIPT_HERE`;
 
-        // Pipeline execution engine
         async function runPipeline(fullPrompt) {
             const codeOutput = document.getElementById('codeOutput');
+            if (!activeKey) return;
+
+            if (!isUserAdmin && currentGenerationsLeft <= 0) {
+                alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
+                return;
+            }
             
             let systemInstruction = `You are an elite Cronus Zen compiler system analyzing GPC script layouts.
             Rules:
             1. ONLY output raw, working GPC code inside a single code block. Do not include introductory text, headers, footers, markdown formatting symbols, or natural language notes.
             2. Follow accurate GPC syntax layout flawlessly (main {}, combo {}, wait(), get_val(), set_val()).`;
 
-            // This forces the AI to always use your template blueprint script for style and syntax layout
             if (goldenTrainedGpc && goldenTrainedGpc !== "PASTE_YOUR_GOLDEN_GPC_SCRIPT_HERE") {
                 systemInstruction += `\n\nCRITICAL BLUEPRINT REQUIRMENT: You must mimic the structural coding habits, variable styling, and layout constraints demonstrated in this verified template example:\n${goldenTrainedGpc}`;
             }
 
             try {
-                const response = await fetch('/.netlify/functions/generate-script', {
+                const response = await fetch(`${API_BASE_URL}/use-generation`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: fullPrompt, system: systemInstruction })
+                    body: JSON.stringify({ prompt: fullPrompt, system: systemInstruction, key: activeKey })
                 });
                 const data = await response.json();
-                codeOutput.innerText = data.script || "// Empty sequence compiled.";
+
+                if (response.ok && data.success) {
+                    codeOutput.innerText = data.script || "// Empty sequence compiled.";
+                    
+                    if (data.remaining === "UNLIMITED" || isUserAdmin) {
+                        currentGenerationsLeft = 999;
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+                    } else {
+                        currentGenerationsLeft = data.remaining;
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ${data.remaining}`;
+                    }
+                } else {
+                    alert(`🛑 LIMIT REACHED: ${data.message || 'Verification balance exhausted.'}`);
+                    codeOutput.innerText = "// Compilation rejected due to execution balance constraints.";
+                }
             } catch (err) {
-                codeOutput.innerText = "// Compilation failed during execution.";
+                codeOutput.innerText = "// Compilation dropped due to secure tunnel connection timeout.";
             }
         }
 
-        // Click actions
+        function updateGenerationUI(usedCount, isAdmin) {
+            if (isAdmin) {
+                currentGenerationsLeft = 999;
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+            } else {
+                currentGenerationsLeft = 2 - (usedCount || 0);
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+            }
+        }
+
+        function triggerSessionLogout() {
+            clearInterval(internalTimerLoop);
+            localStorage.removeItem('onlyzens_auth_key');
+            activeKey = '';
+            isUserAdmin = false;
+            
+            document.getElementById('licenseKeyInput').value = '';
+            document.getElementById('sessionTimerDisplay').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('codeOutput').innerText = "// AI generated structural code appears here...";
+            
+            toggleOverlayLoaderState(false);
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        // Action hooks routing inputs to pipeline
         document.getElementById('btnGenRun').addEventListener('click', async () => {
             const promptText = document.getElementById('genPrompt').value.trim();
-            if(!promptText) return alert('Enter generation specs.');
+            if(!promptText) return alert('Enter generation specifications.');
             document.getElementById('codeOutput').innerText = "// Compiling configuration logic via permanently trained architecture rules...";
             await runPipeline(`Generate a brand new script based on this request: ${promptText}`);
         });
@@ -163,14 +426,30 @@
         document.getElementById('btnModRun').addEventListener('click', async () => {
             const targetSrc = document.getElementById('modifyExistingCode').value.trim();
             const modTask = document.getElementById('modifyPrompt').value.trim();
-            if(!targetSrc || !modTask) return alert('Fill in the source block and target mod specs.');
+            if(!targetSrc || !modTask) return alert('Fill in the source block and target modification requirements.');
             document.getElementById('codeOutput').innerText = "// Processing refactor instructions through custom template rules...";
             await runPipeline(`You are refactoring an existing script. Source input:\n\n${targetSrc}\n\nApply these exact changes: ${modTask}`);
         });
 
         document.getElementById('copyBtn').addEventListener('click', () => {
             navigator.clipboard.writeText(document.getElementById('codeOutput').innerText);
-            alert('Code cloned to clip area.');
+            alert('Code successfully cloned to clipboard workspace.');
+        });
+
+        // Key String Masking Formatting Rule Logic
+        document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let formatted = "";
+            if (value.startsWith('ZENAI')) {
+                formatted = 'ZENAI';
+                let rest = value.substring(5);
+                if (rest.length > 0) formatted += '-' + rest.substring(0, 4);
+                if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
+                if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
+            } else {
+                formatted = value.substring(0,20);
+            }
+            e.target.value = formatted;
         });
     </script>
 </body>

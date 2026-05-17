@@ -3,16 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OnlyZens AI | GPC Script Generator</title>
+    <title>OnlyZens AI | GPC Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* Custom neon glow effects */
-        .neon-glow {
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
-        }
-        .neon-text {
-            text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
-        }
+        .neon-glow { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+        .neon-text { text-shadow: 0 0 8px rgba(168, 85, 247, 0.6); }
     </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen font-sans flex flex-col justify-between">
@@ -22,123 +17,175 @@
             <span class="text-2xl font-black tracking-wider text-purple-500 neon-text">ONLYZENS <span class="text-white font-medium text-lg">AI</span></span>
         </div>
         <div class="text-sm bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
-            v1.0 Beta
+            v1.1 Advanced
         </div>
     </header>
 
-    <main class="max-w-5xl w-full mx-auto p-4 md:p-8 flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-4 h-fit">
-            <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Generation Tips</h2>
-            <p class="text-sm text-neutral-400 leading-relaxed">
-                Be specific with your prompt! Mention things like buttons, hold triggers, and whether you want toggles.
+        <div class="lg:col-span-3 bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-4 h-fit">
+            <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Zen AI Guide</h2>
+            <p class="text-xs text-neutral-400 leading-relaxed">
+                The AI is fed real GPC layout structures. It analyzes data structures, execution blocks, and conditional tracking loops.
             </p>
-            <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800/80">
-                <span class="text-xs font-semibold text-purple-400 block mb-1">Example Prompt:</span>
-                <p class="text-xs text-neutral-500 italic">"Rapid fire script for Apex Legends that activates when holding RT/R2, with a 40ms delay."</p>
-            </div>
-            <div class="text-xs text-neutral-500 bg-neutral-950/40 p-3 rounded-lg border border-neutral-900">
-                ⚠️ All scripts are generated in raw GPC format. Copy and paste them directly into Zen Studio.
+            <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800/80 text-xs text-neutral-400">
+                <span class="text-purple-400 font-semibold block mb-1">Supported Formats:</span>
+                * Rapid-fire / Hair Triggers<br>
+                * Anti-recoil adjustment values<br>
+                * Tracking mod profiles
             </div>
         </div>
 
-        <div class="md:col-span-2 flex flex-col gap-4">
+        <div class="lg:col-span-9 flex flex-col gap-6">
             
-            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 neon-glow">
-                <label for="prompt" class="block text-sm font-semibold text-neutral-300 mb-2">What kind of Zen script do you want?</label>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <input type="text" id="prompt" placeholder="Ask for rapid fire, anti-recoil, aim assist combos..." 
-                        class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 transition-all text-neutral-100">
-                    <button id="generateBtn" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg active:scale-98">
-                        Generate
-                    </button>
+            <div class="flex gap-2 border-b border-neutral-800 pb-1">
+                <button id="tabGenerate" class="px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all">
+                    Create New Script
+                </button>
+                <button id="tabModify" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all">
+                    Modify Existing .GPC
+                </button>
+            </div>
+
+            <div id="panelGenerate" class="flex flex-col gap-4">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 neon-glow">
+                    <label class="block text-sm font-semibold text-neutral-300 mb-2">Build a script from scratch:</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="genPrompt" placeholder="Describe your rapid fire delay requirements or toggle triggers..." 
+                            class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
+                        <button id="btnGenRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
+                            Generate
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-neutral-900 border border-neutral-800 rounded-xl flex flex-col flex-1 min-h-[350px]">
+            <div id="panelModify" class="flex flex-col gap-4 hidden">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col gap-4 neon-glow">
+                    <div>
+                        <label class="block text-sm font-semibold text-neutral-300 mb-2">Paste your existing .GPC source code:</label>
+                        <textarea id="modifyExistingCode" rows="6" placeholder="// Paste your code here..." 
+                            class="w-full font-mono bg-neutral-950 border border-neutral-800 rounded-lg p-3 text-xs focus:outline-none focus:border-purple-500 text-neutral-100"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-neutral-300 mb-2">What modifications or fixes do you want made?</label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="modifyPrompt" placeholder="e.g., 'Change the rapid fire toggle to hold D-PAD up + Options', or 'optimize the tracking loops'" 
+                                class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
+                            <button id="btnModRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg">
+                                Refactor Script
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl flex flex-col flex-1 min-h-[400px]">
                 <div class="border-b border-neutral-800 px-4 py-3 flex justify-between items-center bg-neutral-900/50 rounded-t-xl">
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-red-500"></div>
                         <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-xs text-neutral-400 ml-2 font-mono">script.gpc</span>
+                        <span class="text-xs text-neutral-400 ml-2 font-mono">output_workspace.gpc</span>
                     </div>
-                    <button id="copyBtn" class="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-3 py-1.5 rounded font-medium transition-all active:scale-95">
+                    <button id="copyBtn" class="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-3 py-1.5 rounded font-medium transition-all">
                         Copy Code
                     </button>
                 </div>
-                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm overflow-x-auto selection:bg-purple-900/40 rounded-b-xl"><code id="codeOutput">// Your custom GPC code will appear here...
-
-main {
-    // Click Generate to build your script
-}</code></pre>
+                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm overflow-x-auto rounded-b-xl"><code id="codeOutput">// AI generated structural code appears here...</code></pre>
             </div>
 
         </div>
     </main>
 
     <footer class="border-t border-neutral-900 text-center py-4 text-xs text-neutral-600">
-        &copy; 2026 OnlyZens AI. Built for Cronus Zen.
+        &copy; 2026 OnlyZens AI.
     </footer>
 
     <script>
-        document.getElementById('generateBtn').addEventListener('click', async () => {
-            const promptInput = document.getElementById('prompt');
+        // Tab switching engine
+        const tabGen = document.getElementById('tabGenerate');
+        const tabMod = document.getElementById('tabModify');
+        const panelGen = document.getElementById('panelGenerate');
+        const panelMod = document.getElementById('panelModify');
+
+        tabGen.addEventListener('click', () => {
+            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
+            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
+            panelGen.classList.remove('hidden');
+            panelMod.classList.add('hidden');
+        });
+
+        tabMod.addEventListener('click', () => {
+            tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all";
+            tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all";
+            panelMod.classList.remove('hidden');
+            panelGen.classList.add('hidden');
+        });
+
+        // Elite target model instructions acting as structural code reference
+        const baseGpcRules = `You are an expert Cronus Zen compiler system analyzing GPC script layouts.
+        Analyze this exact structural architecture template to learn how functional code looks:
+        
+        define SHOOT_BUTTON = XB1_RT;
+        define SCOPE_BUTTON = XB1_LT;
+        int rapidFireActive = FALSE;
+        
+        main {
+            if(get_val(XB1_UP) && event_press(XB1_VIEW)) {
+                rapidFireActive = !rapidFireActive;
+            }
+            if(get_val(SHOOT_BUTTON) && rapidFireActive) {
+                combo_run(RapidFireSequence);
+            }
+        }
+        
+        combo RapidFireSequence {
+            set_val(SHOOT_BUTTON, 100);
+            wait(40);
+            set_val(SHOOT_BUTTON, 0);
+            wait(30);
+        }
+
+        Strict Rules:
+        - Only return executable GPC block code inside code syntax wrappers.
+        - Do not attach explanations, headers, footers, or markdown text.`;
+
+        // Execution router
+        async function runPipeline(fullPrompt) {
             const codeOutput = document.getElementById('codeOutput');
-            const generateBtn = document.getElementById('generateBtn');
-            
-            const userPrompt = promptInput.value.trim();
-            if(!userPrompt) return alert('Please enter a script request first!');
-            
-            // Show loading state
-            generateBtn.innerText = "Generating...";
-            generateBtn.disabled = true;
-            codeOutput.innerText = "// Gemini is writing your GPC script...\n// Please wait a few seconds.";
-
-            // System instructions to give context to Gemini on how to format GPC code
-            const systemInstruction = `You are an elite Cronus Zen GPC scripting AI. 
-            Your task is to generate valid, working GPC code based on the user request.
-            Rules:
-            1. ONLY output raw GPC code inside a single code block. No explanations, no markdown introduction text.
-            2. Always use a main {} block.
-            3. Use proper GPC syntax like get_val(), set_val(), combo_run(), wait().
-            4. If the user asks for values (like anti-recoil strength), ensure they are defined as variables or constants at the top.`;
-
             try {
-                // This calls your secure Netlify backend function
                 const response = await fetch('/.netlify/functions/generate-script', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        prompt: userPrompt,
-                        system: systemInstruction
-                    })
+                    body: JSON.stringify({ prompt: fullPrompt, system: baseGpcRules })
                 });
-
                 const data = await response.json();
-                
-                if (data.error) {
-                    codeOutput.innerText = `// Error from AI backend:\n// ${data.error}`;
-                } else {
-                    // Display the freshly generated GPC script
-                    codeOutput.innerText = data.script;
-                }
-
-            } catch (error) {
-                codeOutput.innerText = "// Connection Error!\n// Make sure your Netlify site is deployed and running.";
-                console.error(error);
-            } finally {
-                // Reset button state
-                generateBtn.innerText = "Generate";
-                generateBtn.disabled = false;
+                codeOutput.innerText = data.script || "// Empty sequence compiled.";
+            } catch (err) {
+                codeOutput.innerText = "// Compilation failed during execution.";
             }
+        }
+
+        // Action handlers
+        document.getElementById('btnGenRun').addEventListener('click', async () => {
+            const promptText = document.getElementById('genPrompt').value.trim();
+            if(!promptText) return alert('Enter generation specs.');
+            document.getElementById('codeOutput').innerText = "// Compiling fresh configuration logic...";
+            await runPipeline(`Generate a brand new script based on this blueprint request: ${promptText}`);
         });
 
-        // Copy Code Button Logic
+        document.getElementById('btnModRun').addEventListener('click', async () => {
+            const targetSrc = document.getElementById('modifyExistingCode').value.trim();
+            const modTask = document.getElementById('modifyPrompt').value.trim();
+            if(!targetSrc || !modTask) return alert('Fill in the source block and target mod specs.');
+            document.getElementById('codeOutput').innerText = "// Analyzing structure and processing refactor instructions...";
+            await runPipeline(`You are refactoring an existing script. Use this source target input:\n\n${targetSrc}\n\nApply these modification instructions carefully: ${modTask}`);
+        });
+
         document.getElementById('copyBtn').addEventListener('click', () => {
-            const textToCopy = document.getElementById('codeOutput').innerText;
-            navigator.clipboard.writeText(textToCopy);
-            alert('Code copied to clipboard!');
+            navigator.clipboard.writeText(document.getElementById('codeOutput').innerText);
+            alert('Code cloned to clip area.');
         });
     </script>
 </body>

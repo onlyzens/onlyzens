@@ -10,14 +10,19 @@
             --bg-dark: #09090b;
             --panel-dark: #141416;
             --accent-purple: #a855f7;
-            --accent-green: #10b981;
+            --accent-green: #10b981; 
             --accent-glow-p: rgba(168, 85, 247, 0.4);
             --accent-glow-g: rgba(16, 185, 129, 0.4);
             --text-main: #f4f4f5;
             --text-muted: #a1a1aa;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
         body {
             background-color: var(--bg-dark);
@@ -29,96 +34,229 @@
             justify-content: center;
         }
 
-        /* 🔒 FRESH CLEAN KEY PROMPT INPUT SCREEN */
-        #loginOverlay {
+        /* 🔒 AUTHENTICATION OVERLAY LAYER */
+        #authOverlay {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background: rgba(9, 9, 11, 0.98);
             backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; 
             align-items: center;
             justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            transition: opacity 0.8s ease, visibility 0.8s ease; 
         }
 
         .portal-title {
-            font-size: 2.5rem; margin-bottom: 2rem; letter-spacing: 2px; font-weight: 800;
-            color: var(--accent-purple); text-shadow: 0 0 20px var(--accent-glow-p);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            font-weight: 800;
+            color: var(--accent-purple);
+            text-shadow: 0 0 20px var(--accent-glow-p);
+            animation: slideDownIn 1s ease forwards;
+            opacity: 0; 
         }
 
-        .portal-title span { color: var(--text-main); font-size: 1.2rem; font-weight: 400; margin-left: 10px; }
+        .portal-title span {
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-left: 10px;
+            text-shadow: none;
+        }
 
         .auth-card {
-            background: var(--panel-dark); border: 1px solid #27272a; padding: 2.5rem;
-            border-radius: 20px; width: 100%; max-width: 500px; text-align: center;
+            background: var(--panel-dark);
+            border: 1px solid #27272a;
+            padding: 2.5rem;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            animation: slideUpIn 1s ease forwards;
+            animation-delay: 0.2s; 
+            opacity: 0; 
         }
 
-        .auth-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+        .auth-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            letter-spacing: 0.5px;
+        }
 
-        .inline-input-group { display: flex; gap: 12px; align-items: center; justify-content: center; }
+        .inline-input-group {
+            display: flex;
+            gap: 12px; 
+            align-items: center;
+            justify-content: center;
+        }
 
         .auth-card input {
-            flex-grow: 1; background: #09090b; border: 1px solid #3f3f46; padding: 0.9rem 1.2rem;
-            border-radius: 10px; color: white; font-size: 1.05rem; text-align: center;
-            letter-spacing: 2px; outline: none; transition: border-color 0.3s ease;
+            flex-grow: 1; 
+            background: #09090b;
+            border: 1px solid #3f3f46;
+            padding: 0.9rem 1.2rem;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.05rem;
+            text-align: center;
+            letter-spacing: 2px;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .auth-card input:focus { border-color: var(--accent-purple); box-shadow: 0 0 15px var(--accent-glow-p); }
+        .auth-card input:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px var(--accent-glow-p);
+        }
 
         .auth-btn, .action-btn {
-            background: var(--accent-green); color: white; border: none; padding: 0.9rem 1.8rem;
-            border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer;
-            text-transform: uppercase; transition: transform 0.2s, background 0.3s;
+            background: var(--accent-green); 
+            color: white;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .auth-btn:hover, .action-btn:hover { background: #059669; transform: translateY(-2px); }
+        .auth-btn:hover, .action-btn:hover {
+            background: #059669; 
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--accent-glow-g);
+        }
 
-        #loginOverlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        #authOverlay.authenticated {
+            opacity: 0;
+            pointer-events: none; 
+        }
 
-        /* ⏳ TOP RIGHT META CONTROLS WIDGET */
-        #metaStatusWidget {
-            position: fixed; top: 25px; right: 25px; 
+        /* ⏳ FLOATING STATUS WIDGET (Top Right) */
+        #liveTimerWidget {
+            position: fixed;
+            top: 25px;
+            right: 25px;
             background: rgba(20, 20, 22, 0.9);
-            border: 1px solid #27272a; backdrop-filter: blur(10px); 
-            padding: 1rem 1.5rem; border-radius: 20px; 
-            display: none; flex-direction: column; gap: 6px; 
-            z-index: 9000; opacity: 0; transition: opacity 0.5s ease;
-            text-align: right; min-width: 220px;
+            border: 1px solid #27272a;
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            display: none; 
+            flex-direction: column;
+            gap: 6px;
+            z-index: 9000;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 1s ease 0.5s; 
+            text-align: right;
+            min-width: 220px;
         }
 
-        .status-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-weight: 600; font-size: 0.95rem; }
-        .timer-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
-        .limit-row { font-size: 0.85rem; color: var(--accent-purple); font-weight: 700; margin-top: 2px; letter-spacing: 0.5px; }
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
 
-        /* 🚪 BOTTOM RIGHT LOGOUT CONTAINER */
+        .timer-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulseDot 2.5s infinite;
+        }
+
+        .limit-row {
+            font-size: 0.85rem;
+            color: var(--accent-purple);
+            font-weight: 700;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 🚪 FLOATING LOGOUT BUTTON (Bottom Right) */
         #logoutContainer {
-            position: fixed; bottom: 25px; right: 25px;
-            z-index: 9000; display: none; opacity: 0; transition: opacity 0.5s ease;
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
         .logout-btn {
-            background: rgba(244, 63, 94, 0.1); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.4);
-            padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s ease;
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
         }
 
         .logout-btn:hover {
-            background: #f43f5e; color: white; box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); transform: translateY(-1px);
+            background: #f43f5e;
+            color: white;
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+            transform: translateY(-1px);
         }
 
-        /* 🖥️ MAIN WORKSPACE CONTAINER */
-        #mainWorkspace { text-align: center; opacity: 0; transform: scale(0.98); transition: opacity 0.5s ease, transform 0.5s ease; }
-        #mainWorkspace.loaded { opacity: 1; transform: scale(1); }
+        /* 🖥️ MAIN SUITE CONTENT DISCOVERY AREA */
+        #mainWorkspace {
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.96);
+            transition: opacity 1s ease 0.6s, transform 1s ease 0.6s; 
+        }
 
-        .dashboard-layout { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        #mainWorkspace.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Animations */
+        @keyframes slideDownIn {
+            from { opacity: 0; transform: translateY(-60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUpIn {
+            from { opacity: 0; transform: translateY(60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseDot {
+            0% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
+            50% { opacity: 1; box-shadow: 0 0 12px var(--accent-green); }
+            100% { opacity: 0.4; box-shadow: 0 0 2px var(--accent-green); }
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="loginOverlay">
+    <div id="authOverlay">
         <div class="portal-title">OnlyZens <span>ai</span></div>
         <div class="auth-card">
             <p>Verification module active. Input dynamic access key to authorize session.</p>
@@ -129,19 +267,17 @@
         </div>
     </div>
 
-    <div id="metaStatusWidget">
+    <div id="liveTimerWidget">
         <div class="status-row">
             <div class="timer-dot"></div>
-            <span style="color: var(--text-muted); font-weight: 400;">Time Left:</span>
+            <span style="color: var(--text-muted); font-weight: 400">Session Remaining:</span>
             <span id="countdownClock" style="color: #fff">00h 00m 00s</span>
         </div>
         <div class="limit-row" id="dailyLimitText">Generations Left: 2</div>
     </div>
 
     <div id="mainWorkspace">
-        <div class="dashboard-layout">
-            <button class="action-btn" id="genScriptBtn" onclick="generateScript()">Generate Custom Script</button>
-        </div>
+        <button class="action-btn" id="genScriptBtn" onclick="generateScript()">Generate Custom Script</button>
     </div>
 
     <div id="logoutContainer">
@@ -154,8 +290,9 @@
         let globalRemainingMs = 0;
         let activeKey = '';
         let currentGenerationsLeft = 2;
+        let isUserAdmin = false;
 
-        // 🔄 AUTO-LOGIN HOOK
+        // 🔄 MEMORY AUTO-LOGIN INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('onlyzens_auth_key');
             if (savedKey) {
@@ -174,19 +311,20 @@
                 const data = await response.json();
                 if (response.ok && data.allowed) {
                     activeKey = key;
+                    isUserAdmin = data.isAdmin;
                     updateGenerationUI(data.generationsToday, data.isAdmin);
                     handleSuccessfulLogin(data.timeLeftMs);
                 } else {
                     localStorage.removeItem('onlyzens_auth_key');
                 }
             } catch (err) {
-                console.error("Auto-login backend connection error.");
+                console.error("Auto-login pipeline verification link failure.");
             }
         }
 
         async function submitVerification() {
             const inputField = document.getElementById('licenseKeyInput');
-            const licenseKey = inputField.value.trim().toUpperCase();
+            const licenseKey = inputField.value.trim().toUpperCase(); 
 
             if (!licenseKey) return alert("System requires an access license string.");
 
@@ -196,25 +334,28 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: licenseKey })
                 });
+
                 const data = await response.json();
 
                 if (response.ok && data.allowed) {
                     activeKey = licenseKey;
+                    isUserAdmin = data.isAdmin;
                     localStorage.setItem('onlyzens_auth_key', licenseKey);
                     updateGenerationUI(data.generationsToday, data.isAdmin);
                     handleSuccessfulLogin(data.timeLeftMs);
                 } else {
-                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Failure.'}`);
+                    alert(`ACCESS TERMINATED: ${data.error || 'Authentication Checksum Failure.'}`);
                 }
             } catch (err) {
-                alert("Gatekeeper connection failure.");
+                console.error(err);
+                alert("Communication error: Unable to reach secure authentication gatekeeper.");
             }
         }
 
         async function generateScript() {
             if (!activeKey) return;
 
-            if (currentGenerationsLeft <= 0) {
+            if (!isUserAdmin && currentGenerationsLeft <= 0) {
                 alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
                 return;
             }
@@ -230,22 +371,20 @@
                 if (response.ok && data.success) {
                     alert("🎨 Script generation successful!");
                     
-                    if (data.remaining === "UNLIMITED") {
-                        currentGenerationsLeft = "UNLIMITED";
+                    if (data.remaining === "UNLIMITED" || isUserAdmin) {
+                        currentGenerationsLeft = 999;
                         document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
                     } else {
                         currentGenerationsLeft = data.remaining;
                         document.getElementById('dailyLimitText').innerText = `Generations Left: ${data.remaining}`;
-                        if (currentGenerationsLeft <= 0) {
-                            setBtnDisabledState(true);
-                        }
+                        if (currentGenerationsLeft <= 0) setBtnDisabledState(true);
                     }
                 } else {
                     alert(`🛑 LIMIT REACHED: ${data.message}`);
                     setBtnDisabledState(true);
                 }
             } catch (err) {
-                alert("Database logging connection error.");
+                alert("Database generation logging link failure.");
             }
         }
 
@@ -267,6 +406,7 @@
                 btn.style.background = '#3f3f46';
                 btn.style.cursor = 'not-allowed';
                 btn.style.transform = 'none';
+                btn.style.boxShadow = 'none';
             } else {
                 btn.style.background = 'var(--accent-green)';
                 btn.style.cursor = 'pointer';
@@ -275,61 +415,91 @@
 
         function handleSuccessfulLogin(sessionTimeMs) {
             globalRemainingMs = sessionTimeMs;
+
             if (window.confetti) {
-                confetti({ particleCount: 80, spread: 50, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
             }
-            document.getElementById('loginOverlay').classList.add('hidden'); 
-            document.getElementById('mainWorkspace').classList.add('loaded');
+
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.add('authenticated'); 
             
-            // Show bottom right logout layout controls
+            setTimeout(() => { overlay.classList.add('hidden'); }, 850);
+
+            const workspace = document.getElementById('mainWorkspace');
+            workspace.classList.add('loaded');
+
             const logoutContainer = document.getElementById('logoutContainer');
             logoutContainer.style.display = 'block';
-            setTimeout(() => logoutContainer.style.opacity = '1', 50);
+            setTimeout(() => { logoutContainer.style.opacity = '1'; }, 50);
 
             startLiveWidgetTimer();
         }
 
         function startLiveWidgetTimer() {
-            const statusWidget = document.getElementById('metaStatusWidget');
+            const timerWidget = document.getElementById('liveTimerWidget');
             const clockDisplay = document.getElementById('countdownClock');
-            statusWidget.style.display = 'flex';
-            statusWidget.offsetHeight; 
-            statusWidget.style.opacity = '1';
+            
+            timerWidget.style.display = 'flex';
+            timerWidget.offsetHeight; 
+            timerWidget.style.opacity = '1';
 
             if (internalTimerLoop) clearInterval(internalTimerLoop);
 
             internalTimerLoop = setInterval(() => {
+                if (isUserAdmin) {
+                    clockDisplay.innerText = "∞";
+                    return;
+                }
+
                 if (globalRemainingMs <= 0) {
+                    clearInterval(internalTimerLoop);
+                    clockDisplay.innerText = "EXPIRED";
+                    timerWidget.querySelector('.timer-dot').style.background = '#ef4444'; 
+                    timerWidget.querySelector('.timer-dot').style.boxShadow = '0 0 10px #ef4444';
+                    alert("Session duration complete. Hardware lock engaged.");
                     triggerSessionLogout();
                     return;
                 }
+
                 globalRemainingMs -= 1000; 
+                
                 const totalSeconds = Math.floor(globalRemainingMs / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
 
-                clockDisplay.innerText = `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
+                clockDisplay.innerText = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
             }, 1000);
         }
 
-        // 🚪 MANUAL SESSION TERMINATOR
+        // 🚪 MANUAL LOGOUT CLEAR ACTION
         function triggerSessionLogout() {
             clearInterval(internalTimerLoop);
             localStorage.removeItem('onlyzens_auth_key');
             activeKey = '';
+            isUserAdmin = false;
             
-            // UI Component resets
             document.getElementById('licenseKeyInput').value = '';
-            document.getElementById('metaStatusWidget').style.display = 'none';
+            document.getElementById('liveTimerWidget').style.display = 'none';
             document.getElementById('logoutContainer').style.display = 'none';
             document.getElementById('mainWorkspace').classList.remove('loaded');
-            document.getElementById('loginOverlay').classList.remove('hidden');
+            
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.remove('hidden', 'authenticated');
         }
 
         document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            let formatted = value.startsWith('ZENAI') ? 'ZENAI' + (value.substring(5).length > 0 ? '-' + value.substring(5, 9) : '') + (value.substring(9).length > 0 ? '-' + value.substring(9, 13) : '') + (value.substring(13).length > 0 ? '-' + value.substring(13, 17) : '') : value.substring(0,20);
+            let formatted = "";
+            if (value.startsWith('ZENAI')) {
+                formatted = 'ZENAI';
+                let rest = value.substring(5);
+                if (rest.length > 0) formatted += '-' + rest.substring(0, 4);
+                if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
+                if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
+            } else {
+                formatted = value.substring(0,20);
+            }
             e.target.value = formatted;
         });
     </script>

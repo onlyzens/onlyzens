@@ -162,7 +162,7 @@
                         Copy Code
                     </button>
                 </div>
-                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm overflow-x-auto rounded-b-xl"><code id="codeOutput">// AI generated cross-platform structural code appears here...</code></pre>
+                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm max-h-[600px] overflow-y-auto overflow-x-auto rounded-b-xl"><code id="codeOutput">// AI generated cross-platform structural code appears here...</code></pre>
             </div>
 
         </div>
@@ -379,7 +379,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         prompt: mode === 'modify' ? `${fullPrompt} (Modified Reference Patch Code)` : fullPrompt,
-                        platform: targetPlatform
+                        platform: targetPlatform,
+                        existingCode: codeBlock // 👈 Passes the raw text content to server.js when using modify tab
                     })
                 });
                 

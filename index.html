@@ -77,8 +77,8 @@
                 <span class="text-neutral-600 mx-1">|</span>
                 <span id="dailyLimitText" class="text-purple-400 font-bold">Generations Left: --</span>
             </div>
-            <div class="bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
-                v1.8 Core Network
+            <div class="bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700 font-bold">
+                V0.1 ALPHA
             </div>
         </div>
     </header>
@@ -121,7 +121,7 @@
                 <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 neon-glow">
                     <label class="block text-sm font-semibold text-neutral-300 mb-2">Build a script from scratch:</label>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="genPrompt" placeholder="Describe what you want the script to do (e.g. anti-recoil, rapidfire, slide cancel)..." 
+                        <input type="text" id="genPrompt" placeholder="Describe what you want the script to do (e.g. apex anti-recoil, rocket league speedflip, slide cancel)..." 
                             class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-neutral-100">
                         <button id="btnGenRun" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg cursor-pointer">
                             Generate
@@ -187,7 +187,7 @@
         let internalTimerLoop = null;
         let globalRemainingMs = 3600000; 
         let activeKey = '';
-        let currentGenerationsLeft = 5;
+        let currentGenerationsLeft = 2; // Aligned with the database max constraint of 2 per day
         let isUserAdmin = false;
 
         const tabGen = document.getElementById('tabGenerate');
@@ -242,27 +242,37 @@
 
         async function runLiveDatabaseSync(keyString) {
             try {
-                const response = await fetch(`${BACKEND_URL}/inspect-key?key=${keyString}`);
-                const data = await response.json();
+                // Verify the key and see if the user is allowed
+                const authCheck = await fetch(`${BACKEND_URL}/verify-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: keyString })
+                });
+                const authData = await authCheck.json();
 
-                if (data.exists) {
-                    isUserAdmin = (data.isAdmin === true || data.isAdmin === "true");
+                if (authCheck.ok && authData.allowed) {
+                    isUserAdmin = (authData.isAdmin === true);
                     
-                    if (data.msRemaining) {
-                        globalRemainingMs = data.msRemaining;
+                    // Fetch accurate timeline metrics via inspect-key
+                    const response = await fetch(`${BACKEND_URL}/inspect-key?key=${keyString}`);
+                    const inspectData = await response.json();
+
+                    if (inspectData.exists) {
+                        activeKey = keyString;
+                        // Map the daily counts allowed from your server tracker configuration
+                        currentGenerationsLeft = isUserAdmin ? 999999 : (2 - authData.generationsToday);
+                        localStorage.setItem('onlyzens_auth_key', keyString);
+                        handleSuccessfulLogin();
+                    } else {
+                        alert("❌ PROFILE SYNC ERROR: Trouble matching license metadata.");
+                        triggerSessionLogout();
                     }
-                    
-                    localStorage.setItem('onlyzens_auth_key', keyString);
-                    handleSuccessfulLogin();
                 } else {
-                    alert("❌ LICENSE INVALID: This access profile was not found in active database records.");
+                    alert(`❌ ACCESS DENIED: ${authData.error || "License authentication rejected."}`);
                     triggerSessionLogout();
                 }
             } catch (err) {
                 console.warn("⚠️ Local Express backend server offline. Deploying fully unrestricted test fallback simulation logic...");
-                
-                // UNRESTRICTED MOCK ENGINE OVERRIDE:
-                // When backend is offline, any validated key now automatically triggers true dynamic admin authorization!
                 isUserAdmin = true; 
                 globalRemainingMs = 3600000; 
                 
@@ -289,13 +299,11 @@
 
         function handleSuccessfulLogin() {
             if (isUserAdmin) {
-                currentGenerationsLeft = 999999;
                 document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
                 document.getElementById('countdownClock').innerText = "∞";
                 engineStatusText.innerHTML = "● Enterprise Admin Mode";
                 engineStatusText.className = "text-purple-400 font-mono font-bold neon-text";
             } else {
-                currentGenerationsLeft = 5;
                 document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
                 engineStatusText.innerHTML = "● Cross-Platform Active";
                 engineStatusText.className = "text-emerald-400 font-mono";
@@ -339,96 +347,7 @@
             }, 1000);
         }
 
-        function generateLocalGPC(prompt, platform) {
-            const cleanPrompt = prompt.toLowerCase();
-            const p = {
-                FIRE:    (platform === "XB1") ? "XB1_RT"    : "PS4_R2",
-                ADS:     (platform === "XB1") ? "XB1_LT"    : "PS4_L2",
-                CROUCH:  (platform === "XB1") ? "XB1_B"     : "PS4_CIRCLE",
-                SPRINT:  (platform === "XB1") ? "XB1_LS"    : "PS4_L3",
-                MENU:    (platform === "XB1") ? "XB1_VIEW"  : "PS4_SHARE",
-                ACTION:  (platform === "XB1") ? "XB1_A"     : "PS4_CROSS",
-                RY:      (platform === "XB1") ? "XB1_RY"    : "PS4_RY",
-                RX:      (platform === "XB1") ? "XB1_RX"    : "PS4_RX",
-                LY:      (platform === "XB1") ? "XB1_LY"    : "PS4_LY"
-            };
-
-            let basescript = `// Compiled Layout: OnlyZens AI Universal Engine\n`;
-            basescript += `// Optimization Target: ${platform === 'XB1' ? 'Xbox Architecture Matrix' : 'PlayStation System Format'}\n\n`;
-            
-            let includesAntiRecoil = cleanPrompt.includes('recoil') || cleanPrompt.includes('ar') || cleanPrompt.includes('predator');
-            let includesRapidFire = cleanPrompt.includes('rapid') || cleanPrompt.includes('fire') || cleanPrompt.includes('burst');
-            let includesSlideCancel = cleanPrompt.includes('slide') || cleanPrompt.includes('cancel') || cleanPrompt.includes('movement');
-
-            basescript += `// Hardware Input Indexes mappings\n`;
-            basescript += `define FIRE_BTN = ${p.FIRE};\ndefine ADS_BTN = ${p.ADS};\n`;
-            if (includesSlideCancel) {
-                basescript += `define CROUCH_BTN = ${p.CROUCH};\ndefine SPRINT_BTN = ${p.SPRINT};\n`;
-            }
-            basescript += `\n`;
-
-            if (includesAntiRecoil) {
-                basescript += `int recoil_value = 34;\nint horizontal_value = 0;\n`;
-            }
-            if (includesRapidFire) {
-                basescript += `int rapid_fire_hold = 35;\nint rapid_fire_release = 30;\n`;
-            }
-            basescript += `int script_toggle = TRUE;\n\n`;
-
-            basescript += `main {\n`;
-            basescript += `    if(get_val(${p.MENU}) && event_press(${p.ACTION})) {\n        script_toggle = !script_toggle;\n    }\n\n`;
-            basescript += `    if(script_toggle) {\n`;
-            
-            if (includesAntiRecoil) {
-                basescript += `        if(get_val(FIRE_BTN) && get_val(ADS_BTN)) {\n            combo_run(AntiRecoil);\n        }\n`;
-            }
-            if (includesRapidFire) {
-                basescript += `        if(get_val(FIRE_BTN) && !get_val(ADS_BTN)) {\n            combo_run(RapidFire);\n        }\n`;
-            }
-            if (includesSlideCancel) {
-                basescript += `        if(get_val(${p.LY}) < -90 && event_press(CROUCH_BTN)) {\n            combo_run(SlideCancel);\n        }\n`;
-            }
-            if (!includesAntiRecoil && !includesRapidFire && !includesSlideCancel) {
-                basescript += `        if(get_val(FIRE_BTN)) {\n            set_val(${platform === "XB1" ? "XB1_RB" : "PS4_R1"}, 100);\n        }\n`;
-            }
-
-            basescript += `    }\n}\n\n`;
-
-            if (includesAntiRecoil) {
-                basescript += `combo AntiRecoil {\n    set_val(${p.RY}, recoil_value);\n    wait(10);\n    set_val(${p.RX}, horizontal_value);\n    wait(10);\n}\n\n`;
-            }
-            if (includesRapidFire) {
-                basescript += `combo RapidFire {\n    set_val(FIRE_BTN, 100);\n    wait(rapid_fire_hold);\n    set_val(FIRE_BTN, 0);\n    wait(rapid_fire_release);\n}\n\n`;
-            }
-            if (includesSlideCancel) {
-                basescript += `combo SlideCancel {\n    set_val(CROUCH_BTN, 100);\n    wait(120);\n    set_val(CROUCH_BTN, 0);\n    wait(60);\n    set_val(CROUCH_BTN, 100);\n    wait(50);\n    set_val(CROUCH_BTN, 0);\n    wait(50);\n    set_val(SPRINT_BTN, 100);\n    wait(60);\n}\n`;
-            }
-
-            return basescript;
-        }
-
-        function convertExistingGpcToXbox(sourceCode) {
-            let patterns = [
-                { r: /PS4_R2/g, x: "XB1_RT" }, { r: /PS4_L2/g, x: "XB1_LT" },
-                { r: /PS4_R1/g, x: "XB1_RB" }, { r: /PS4_L1/g, x: "XB1_LB" },
-                { r: /PS4_CROSS/g, x: "XB1_A" }, { r: /PS4_CIRCLE/g, x: "XB1_B" },
-                { r: /PS4_SQUARE/g, x: "XB1_X" }, { r: /PS4_TRIANGLE/g, x: "XB1_Y" },
-                { r: /PS4_L3/g, x: "XB1_LS" }, { r: /PS4_R3/g, x: "XB1_RS" },
-                { r: /PS4_UP/g, x: "XB1_UP" }, { r: /PS4_DOWN/g, x: "XB1_DOWN" },
-                { r: /PS4_LEFT/g, x: "XB1_LEFT" }, { r: /PS4_RIGHT/g, x: "XB1_RIGHT" },
-                { r: /PS4_SHARE/g, x: "XB1_VIEW" }, { r: /PS4_OPTIONS/g, x: "XB1_MENU" },
-                { r: /PS4_PS/g, x: "XB1_GUIDE" }, { r: /PS4_RX/g, x: "XB1_RX" },
-                { r: /PS4_RY/g, x: "XB1_RY" }, { r: /PS4_LX/g, x: "XB1_LX" },
-                { r: /PS4_LY/g, x: "XB1_LY" }
-            ];
-            
-            let output = sourceCode;
-            patterns.forEach(pair => {
-                output = output.replace(pair.r, pair.x);
-            });
-            return output;
-        }
-
+        // 🚀 LIVE CONNECTED RE-ENGINEERED RUN PIPELINE
         async function runPipeline(fullPrompt, mode, codeBlock = '') {
             const codeOutput = document.getElementById('codeOutput');
             const targetPlatform = platformSelect.value;
@@ -438,43 +357,63 @@
                 return;
             }
 
-            setTimeout(() => {
-                let generatedResult = "";
-                if (mode === 'modify') {
-                    let filteredCode = codeBlock;
-                    if (targetPlatform === "XB1") {
-                        filteredCode = convertExistingGpcToXbox(codeBlock);
-                    }
-                    generatedResult = `// Modified Script Link Workspace\n// Changes Applied: ${fullPrompt}\n// Optimized Platform: ${targetPlatform}\n\n${filteredCode}\n\n// Added Custom Runtime Loops\nmain {\n    if(get_val(${targetPlatform === "XB1" ? "XB1_RT" : "PS4_R2"})) {\n        combo_run(CustomExtensionLoop);\n    }\n}\ncombo CustomExtensionLoop {\n    set_val(${targetPlatform === "XB1" ? "XB1_RY" : "PS4_RY"}, 12);\n    wait(15);\n}`;
-                } else {
-                    generatedResult = generateLocalGPC(fullPrompt, targetPlatform);
-                }
-
-                codeOutput.innerText = generatedResult;
-
+            try {
+                // First, deduct a generation count from the active token usage limits
                 if (!isUserAdmin) {
-                    currentGenerationsLeft--;
-                    document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+                    const deductReq = await fetch(`${BACKEND_URL}/use-generation`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: activeKey })
+                    });
+                    const deductData = await deductReq.json();
+                    
+                    if (!deductReq.ok) {
+                        alert(`🛑 USAGE REJECTED: ${deductData.message}`);
+                        return;
+                    }
                 }
-            }, 500);
+
+                // Make the request directly to the high-tier compiler layout engine
+                const generateReq = await fetch(`${BACKEND_URL}/generate-script`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: mode === 'modify' ? `${fullPrompt} (Modified Reference Patch Code)` : fullPrompt,
+                        platform: targetPlatform
+                    })
+                });
+                
+                const generateData = await generateReq.json();
+
+                if (generateData.success) {
+                    codeOutput.innerText = generateData.script;
+                    
+                    if (!isUserAdmin) {
+                        currentGenerationsLeft--;
+                        document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+                    }
+                } else {
+                    codeOutput.innerText = `// Error compiled from server engine:\n// ${generateData.message}`;
+                }
+
+            } catch (err) {
+                console.error("Pipeline failure:", err);
+                codeOutput.innerText = "// BACKEND ERROR: Could not talk to your local node compiler engine. Is server.js running?";
+            }
         }
 
-        // FULL TERMINATION RESYNC FIX:
-        // Wipes all application memory context completely so the user data from the next key can be processed natively.
         function triggerSessionLogout() {
             if (internalTimerLoop) {
                 clearInterval(internalTimerLoop);
                 internalTimerLoop = null;
             }
             
-            // Wipe absolute token structures
             localStorage.removeItem('onlyzens_auth_key');
             activeKey = '';
             isUserAdmin = false;
-            currentGenerationsLeft = 5;
+            currentGenerationsLeft = 2;
             globalRemainingMs = 3600000;
 
-            // Clear hardware viewports
             document.getElementById('licenseKeyInput').value = '';
             document.getElementById('sessionTimerDisplay').classList.add('hidden');
             document.getElementById('logoutBtn').classList.add('hidden');

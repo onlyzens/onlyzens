@@ -234,4 +234,217 @@
             // Simulating secure pipeline check latency
             setTimeout(() => {
                 activeKey = licenseKey;
-                isUserAdmin = licenseKey.includes('
+                isUserAdmin = licenseKey.includes('ADMIN') || licenseKey === 'ZENAI-9999-9999-9999';
+                localStorage.setItem('onlyzens_auth_key', licenseKey);
+                updateGenerationUI(0, isUserAdmin);
+                handleSuccessfulLogin(globalRemainingMs);
+            }, 1200);
+        }
+
+        function toggleOverlayLoaderState(showLoader) {
+            const form = document.getElementById('authFormFrame');
+            const loader = document.getElementById('authLoadingFrame');
+            if (showLoader) {
+                form.classList.add('hidden');
+                loader.classList.remove('hidden');
+            } else {
+                loader.classList.add('hidden');
+                form.classList.remove('hidden');
+            }
+        }
+
+        function handleSuccessfulLogin(sessionTimeMs) {
+            globalRemainingMs = sessionTimeMs;
+
+            if (window.confetti) {
+                confetti({ particleCount: 140, spread: 75, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
+            }
+
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+
+            document.getElementById('sessionTimerDisplay').classList.remove('hidden');
+            document.getElementById('sessionTimerDisplay').classList.add('flex');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+
+            startLiveWidgetTimer();
+        }
+
+        function startLiveWidgetTimer() {
+            const clockDisplay = document.getElementById('countdownClock');
+            if (internalTimerLoop) clearInterval(internalTimerLoop);
+
+            internalTimerLoop = setInterval(() => {
+                if (isUserAdmin) {
+                    clockDisplay.innerText = "∞";
+                    return;
+                }
+
+                if (globalRemainingMs <= 0) {
+                    clearInterval(internalTimerLoop);
+                    clockDisplay.innerText = "EXPIRED";
+                    alert("Session duration finished. Hardware interface lock engaged.");
+                    triggerSessionLogout();
+                    return;
+                }
+
+                globalRemainingMs -= 1000; 
+                
+                const totalSeconds = Math.floor(globalRemainingMs / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                clockDisplay.innerText = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+            }, 1000);
+        }
+
+        // Local Processing AI Pipeline engine execution rules
+        function generateLocalGPC(prompt) {
+            const cleanPrompt = prompt.toLowerCase();
+            
+            let basescript = `// Compiled Layout: OnlyZens AI Engine\n// Configuration: Custom Rule Matrix\n\n`;
+            
+            // Checking logic constraints inside prompt metrics
+            let includesAntiRecoil = cleanPrompt.includes('recoil') || cleanPrompt.includes('ar') || cleanPrompt.includes('predator');
+            let includesRapidFire = cleanPrompt.includes('rapid') || cleanPrompt.includes('fire') || cleanPrompt.includes('burst');
+            let includesSlideCancel = cleanPrompt.includes('slide') || cleanPrompt.includes('cancel') || cleanPrompt.includes('movement');
+
+            // Global definitions based on request structure
+            basescript += `define FIRE_BTN = PS4_R2;\ndefine ADS_BTN = PS4_L2;\n`;
+            if (includesSlideCancel) {
+                basescript += `define CROUCH_BTN = PS4_CROUCH;\ndefine SPRINT_BTN = PS4_L3;\n`;
+            }
+            basescript += `\n`;
+
+            if (includesAntiRecoil) {
+                basescript += `int recoil_value = 32;\nint horizontal_value = 0;\n`;
+            }
+            if (includesRapidFire) {
+                basescript += `int rapid_fire_hold = 40;\nint rapid_fire_release = 30;\n`;
+            }
+            basescript += `int script_toggle = TRUE;\n\n`;
+
+            // Main Execution Loop
+            basescript += `main {\n`;
+            basescript += `    if(get_val(PS4_SHARE) && event_press(PS4_CROSS)) {\n        script_toggle = !script_toggle;\n    }\n\n`;
+            basescript += `    if(script_toggle) {\n`;
+            
+            if (includesAntiRecoil) {
+                basescript += `        if(get_val(FIRE_BTN) && get_val(ADS_BTN)) {\n            combo_run(AntiRecoil);\n        }\n`;
+            }
+            if (includesRapidFire) {
+                basescript += `        if(get_val(FIRE_BTN) && !get_val(ADS_BTN)) {\n            combo_run(RapidFire);\n        }\n`;
+            }
+            if (includesSlideCancel) {
+                basescript += `        if(get_val(PS4_LY) < -90 && event_press(CROUCH_BTN)) {\n            combo_run(SlideCancel);\n        }\n`;
+            }
+            if (!includesAntiRecoil && !includesRapidFire && !includesSlideCancel) {
+                basescript += `        // Standard Button Remap Utility Mod Block\n        if(get_val(FIRE_BTN)) {\n            set_val(PS4_R1, 100);\n        }\n`;
+            }
+
+            basescript += `    }\n}\n\n`;
+
+            // Combo Sequence compilation blocks
+            if (includesAntiRecoil) {
+                basescript += `combo AntiRecoil {\n    set_val(PS4_RY, recoil_value);\n    wait(10);\n    set_val(PS4_RX, horizontal_value);\n    wait(10);\n}\n\n`;
+            }
+            if (includesRapidFire) {
+                basescript += `combo RapidFire {\n    set_val(FIRE_BTN, 100);\n    wait(rapid_fire_hold);\n    set_val(FIRE_BTN, 0);\n    wait(rapid_fire_release);\n}\n\n`;
+            }
+            if (includesSlideCancel) {
+                basescript += `combo SlideCancel {\n    set_val(CROUCH_BTN, 100);\n    wait(120);\n    set_val(CROUCH_BTN, 0);\n    wait(60);\n    set_val(CROUCH_BTN, 100);\n    wait(50);\n    set_val(CROUCH_BTN, 0);\n    wait(50);\n    set_val(SPRINT_BTN, 100);\n    wait(60);\n}\n`;
+            }
+
+            return basescript;
+        }
+
+        async function runPipeline(fullPrompt, mode, codeBlock = '') {
+            const codeOutput = document.getElementById('codeOutput');
+            
+            if (!isUserAdmin && currentGenerationsLeft <= 0) {
+                alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
+                return;
+            }
+
+            // Simulating compilation processing sequence timing
+            setTimeout(() => {
+                let generatedResult = "";
+                if (mode === 'modify') {
+                    generatedResult = `// Modified Script Workspace Link\n// Changes Applied: ${fullPrompt}\n\n${codeBlock}\n\n// Added Loop Script Modifier Extensions\nmain {\n    if(get_val(PS4_R2)) {\n        combo_run(CustomModifyLoop);\n    }\n}\ncombo CustomModifyLoop {\n    set_val(PS4_RY, 15);\n    wait(20);\n}`;
+                } else {
+                    generatedResult = generateLocalGPC(fullPrompt);
+                }
+
+                codeOutput.innerText = generatedResult;
+
+                if (!isUserAdmin) {
+                    currentGenerationsLeft--;
+                    document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+                }
+            }, 1000);
+        }
+
+        function updateGenerationUI(usedCount, isAdmin) {
+            if (isAdmin) {
+                currentGenerationsLeft = 999;
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ∞`;
+            } else {
+                document.getElementById('dailyLimitText').innerText = `Generations Left: ${currentGenerationsLeft}`;
+            }
+        }
+
+        function triggerSessionLogout() {
+            localStorage.removeItem('onlyzens_auth_key');
+            activeKey = '';
+            isUserAdmin = false;
+            
+            document.getElementById('licenseKeyInput').value = '';
+            document.getElementById('sessionTimerDisplay').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('codeOutput').innerText = "// AI generated structural code appears here...";
+            
+            toggleOverlayLoaderState(false);
+            const overlay = document.getElementById('authOverlay');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        // Action hooks routing inputs to pipeline
+        document.getElementById('btnGenRun').addEventListener('click', async () => {
+            const promptText = document.getElementById('genPrompt').value.trim();
+            if(!promptText) return alert('Enter generation specifications.');
+            document.getElementById('codeOutput').innerText = "// Compiling configuration logic via permanently trained architecture rules...";
+            await runPipeline(promptText, 'generate');
+        });
+
+        document.getElementById('btnModRun').addEventListener('click', async () => {
+            const targetSrc = document.getElementById('modifyExistingCode').value.trim();
+            const modTask = document.getElementById('modifyPrompt').value.trim();
+            if(!targetSrc || !modTask) return alert('Fill in the source block and target modification requirements.');
+            document.getElementById('codeOutput').innerText = "// Processing refactor instructions through custom template rules...";
+            await runPipeline(modTask, 'modify', targetSrc);
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('codeOutput').innerText);
+            alert('Code successfully cloned to clipboard workspace.');
+        });
+
+        // Key String Masking Formatting Rule Logic
+        document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let formatted = "";
+            if (value.startsWith('ZENAI')) {
+                formatted = 'ZENAI';
+                let rest = value.substring(5);
+                if (rest.length > 0) formatted += '-' + rest.substring(0, 4);
+                if (rest.length > 4) formatted += '-' + rest.substring(4, 8);
+                if (rest.length > 8) formatted += '-' + rest.substring(8, 12);
+            } else {
+                formatted = value.substring(0,20);
+            }
+            e.target.value = formatted;
+        });
+    </script>
+</body>
+</html>

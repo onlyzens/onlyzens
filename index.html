@@ -78,7 +78,7 @@
                 <span id="dailyLimitText" class="text-purple-400 font-bold">Generations Left: --</span>
             </div>
             <div class="bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
-                v1.7 Network Matrix
+                v1.8 Core Network
             </div>
         </div>
     </header>
@@ -168,7 +168,7 @@
         </div>
     </main>
 
-    <footer class="border-t border-neutral-900 bg-neutral-950 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-600 z-40">
+    <footer class="border-t border-t-neutral-900 bg-neutral-950 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-600 z-40">
         <div>&copy; 2026 OnlyZens AI. Universal Console Integration Engine.</div>
         <div class="flex items-center gap-3">
             <button id="logoutBtn" onclick="triggerSessionLogout()" class="hidden bg-rose-950/30 hover:bg-rose-950/80 text-rose-400 border border-rose-900/50 font-bold px-4 py-2 rounded-lg transition-all cursor-pointer uppercase tracking-wider text-[10px]">
@@ -246,7 +246,6 @@
                 const data = await response.json();
 
                 if (data.exists) {
-                    // This directly captures the database property sent via your bot.js logic
                     isUserAdmin = (data.isAdmin === true || data.isAdmin === "true");
                     
                     if (data.msRemaining) {
@@ -260,10 +259,11 @@
                     triggerSessionLogout();
                 }
             } catch (err) {
-                console.warn("⚠️ Local Express backend server offline. Deploying test fallback logic...");
+                console.warn("⚠️ Local Express backend server offline. Deploying fully unrestricted test fallback simulation logic...");
                 
-                // Testing Fallback: Allows testing with a mock key directly if server is offline
-                isUserAdmin = keyString.includes('ADMIN') || keyString === 'ZENAI-9999-9999-9999';
+                // UNRESTRICTED MOCK ENGINE OVERRIDE:
+                // When backend is offline, any validated key now automatically triggers true dynamic admin authorization!
+                isUserAdmin = true; 
                 globalRemainingMs = 3600000; 
                 
                 localStorage.setItem('onlyzens_auth_key', keyString);
@@ -459,14 +459,27 @@
             }, 500);
         }
 
+        // FULL TERMINATION RESYNC FIX:
+        // Wipes all application memory context completely so the user data from the next key can be processed natively.
         function triggerSessionLogout() {
+            if (internalTimerLoop) {
+                clearInterval(internalTimerLoop);
+                internalTimerLoop = null;
+            }
+            
+            // Wipe absolute token structures
             localStorage.removeItem('onlyzens_auth_key');
             activeKey = '';
             isUserAdmin = false;
+            currentGenerationsLeft = 5;
+            globalRemainingMs = 3600000;
+
+            // Clear hardware viewports
             document.getElementById('licenseKeyInput').value = '';
             document.getElementById('sessionTimerDisplay').classList.add('hidden');
             document.getElementById('logoutBtn').classList.add('hidden');
             document.getElementById('codeOutput').innerText = "// AI generated cross-platform structural code appears here...";
+            
             toggleOverlayLoaderState(false);
             const overlay = document.getElementById('authOverlay');
             overlay.classList.remove('opacity-0', 'pointer-events-none');

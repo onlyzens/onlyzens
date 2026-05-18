@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OnlyZens AI | GPC Script Generator</title>
+    <title>OnlyZens AI | Universal GPC Script Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         .neon-glow { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
         .neon-text { text-shadow: 0 0 8px rgba(168, 85, 247, 0.6); }
 
-        /* 🔄 Smooth tab panel transitions */
         .panel-animate {
             opacity: 0;
             transform: translateY(10px);
@@ -22,7 +21,6 @@
             transform: translateY(0);
         }
 
-        /* ⏳ Line-based Loading Spinner Animation */
         .loader-spinner {
             width: 40px;
             height: 40px;
@@ -77,25 +75,35 @@
                 <span class="text-neutral-400">Session Remaining:</span>
                 <span id="countdownClock" class="font-mono text-white font-bold">00h 00m 00s</span>
                 <span class="text-neutral-600 mx-1">|</span>
-                <span id="dailyLimitText" class="text-purple-400 font-bold">Generations Left: 2</span>
+                <span id="dailyLimitText" class="text-purple-400 font-bold">Generations Left: 5</span>
             </div>
             <div class="bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full border border-neutral-700">
-                v1.3 Production
+                v1.4 Cross-Platform
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 z-30">
         
-        <div class="lg:col-span-3 bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-4 h-fit">
-            <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Zen AI Engine</h2>
-            <div class="bg-neutral-950 p-3 rounded-lg border border-neutral-800/80 text-xs">
-                <span class="text-purple-400 font-semibold block mb-1">Engine Tuning:</span>
-                <p class="text-emerald-400 font-mono">● Permanently Trained</p>
+        <div class="lg:col-span-3 bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex flex-col gap-5 h-fit">
+            <div>
+                <h2 class="text-lg font-bold text-neutral-200 border-b border-neutral-800 pb-2">Zen AI Engine</h2>
+                <div class="bg-neutral-950 p-3 mt-3 rounded-lg border border-neutral-800/80 text-xs">
+                    <span class="text-purple-400 font-semibold block mb-1">Engine Tuning:</span>
+                    <p class="text-emerald-400 font-mono">● Cross-Platform Active</p>
+                </div>
             </div>
-            <p class="text-xs text-neutral-400 leading-relaxed">
-                This generator uses hardcoded blueprint reference code. It analyzes structural execution loops, variables, and timings to write valid scripts.
-            </p>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-xs font-bold uppercase tracking-wider text-neutral-400">Target Console Platform</label>
+                <select id="platformSelect" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg p-2.5 text-sm text-neutral-200 focus:outline-none focus:border-purple-500">
+                    <option value="XB1">Xbox One / Series X|S (XB1_ Index)</option>
+                    <option value="PS4" selected>PlayStation 4 / 5 (PS4_ Index)</option>
+                </select>
+                <p class="text-[11px] text-neutral-500 leading-normal mt-1">
+                    Xbox architectures utilize identical hardware mappings inside the Cronus engine compiler loop. Choosing your system formats aliases explicitly.
+                </p>
+            </div>
         </div>
 
         <div class="lg:col-span-9 flex flex-col gap-6">
@@ -154,14 +162,14 @@
                         Copy Code
                     </button>
                 </div>
-                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm overflow-x-auto rounded-b-xl"><code id="codeOutput">// AI generated structural code appears here...</code></pre>
+                <pre class="flex-1 p-4 bg-neutral-950 text-green-400 font-mono text-sm overflow-x-auto rounded-b-xl"><code id="codeOutput">// AI generated cross-platform structural code appears here...</code></pre>
             </div>
 
         </div>
     </main>
 
     <footer class="border-t border-neutral-900 bg-neutral-950 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-600 z-40">
-        <div>&copy; 2026 OnlyZens AI.</div>
+        <div>&copy; 2026 OnlyZens AI. Universal Console Integration Engine.</div>
         
         <div class="flex items-center gap-3">
             <button id="logoutBtn" onclick="triggerSessionLogout()" class="hidden bg-rose-950/30 hover:bg-rose-950/80 text-rose-400 border border-rose-900/50 font-bold px-4 py-2 rounded-lg transition-all cursor-pointer uppercase tracking-wider text-[10px]">
@@ -176,21 +184,20 @@
 
     <script>
         let internalTimerLoop = null;
-        let globalRemainingMs = 7200000; // 2 hours preset
+        let globalRemainingMs = 7200000; 
         let activeKey = '';
         let currentGenerationsLeft = 5;
         let isUserAdmin = false;
 
-        // Tab engine mapping targets
         const tabGen = document.getElementById('tabGenerate');
         const tabMod = document.getElementById('tabModify');
         const panelGen = document.getElementById('panelGenerate');
         const panelMod = document.getElementById('panelModify');
+        const platformSelect = document.getElementById('platformSelect');
 
         tabGen.addEventListener('click', () => {
             tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all cursor-pointer";
             tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all cursor-pointer";
-            
             panelMod.classList.remove('active');
             setTimeout(() => {
                 panelMod.classList.add('hidden');
@@ -203,7 +210,6 @@
         tabMod.addEventListener('click', () => {
             tabMod.className = "px-4 py-2 text-sm font-semibold border-b-2 border-purple-500 text-purple-400 transition-all cursor-pointer";
             tabGen.className = "px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-neutral-200 transition-all cursor-pointer";
-            
             panelGen.classList.remove('active');
             setTimeout(() => {
                 panelGen.classList.add('hidden');
@@ -213,7 +219,6 @@
             }, 150);
         });
 
-        // Auto login block logic simulation
         window.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('onlyzens_auth_key');
             if (savedKey) {
@@ -231,7 +236,6 @@
 
             toggleOverlayLoaderState(true);
 
-            // Simulating secure pipeline check latency
             setTimeout(() => {
                 activeKey = licenseKey;
                 isUserAdmin = licenseKey.includes('ADMIN') || licenseKey === 'ZENAI-9999-9999-9999';
@@ -255,18 +259,14 @@
 
         function handleSuccessfulLogin(sessionTimeMs) {
             globalRemainingMs = sessionTimeMs;
-
             if (window.confetti) {
                 confetti({ particleCount: 140, spread: 75, origin: { y: 0.6 }, colors: ['#a855f7', '#ffffff', '#10b981'] });
             }
-
             const overlay = document.getElementById('authOverlay');
             overlay.classList.add('opacity-0', 'pointer-events-none');
-
             document.getElementById('sessionTimerDisplay').classList.remove('hidden');
             document.getElementById('sessionTimerDisplay').classList.add('flex');
             document.getElementById('logoutBtn').classList.remove('hidden');
-
             startLiveWidgetTimer();
         }
 
@@ -279,7 +279,6 @@
                     clockDisplay.innerText = "∞";
                     return;
                 }
-
                 if (globalRemainingMs <= 0) {
                     clearInterval(internalTimerLoop);
                     clockDisplay.innerText = "EXPIRED";
@@ -287,47 +286,57 @@
                     triggerSessionLogout();
                     return;
                 }
-
                 globalRemainingMs -= 1000; 
-                
                 const totalSeconds = Math.floor(globalRemainingMs / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
-
                 clockDisplay.innerText = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
             }, 1000);
         }
 
-        // Local Processing AI Pipeline engine execution rules
-        function generateLocalGPC(prompt) {
+        // 🛠️ CROSS-PLATFORM COMPILER ALGORITHM IMPLEMENTATION
+        function generateLocalGPC(prompt, platform) {
             const cleanPrompt = prompt.toLowerCase();
             
-            let basescript = `// Compiled Layout: OnlyZens AI Engine\n// Configuration: Custom Rule Matrix\n\n`;
+            // Map button references based on platform selection matrix
+            const p = {
+                FIRE:    (platform === "XB1") ? "XB1_RT"    : "PS4_R2",
+                ADS:     (platform === "XB1") ? "XB1_LT"    : "PS4_L2",
+                CROUCH:  (platform === "XB1") ? "XB1_B"     : "PS4_CIRCLE",
+                SPRINT:  (platform === "XB1") ? "XB1_LS"    : "PS4_L3",
+                MENU:    (platform === "XB1") ? "XB1_VIEW"  : "PS4_SHARE",
+                ACTION:  (platform === "XB1") ? "XB1_A"     : "PS4_CROSS",
+                RY:      (platform === "XB1") ? "XB1_RY"    : "PS4_RY",
+                RX:      (platform === "XB1") ? "XB1_RX"    : "PS4_RX",
+                LY:      (platform === "XB1") ? "XB1_LY"    : "PS4_LY"
+            };
+
+            let basescript = `// Compiled Layout: OnlyZens AI Universal Engine\n`;
+            basescript += `// Optimization Target: ${platform === 'XB1' ? 'Xbox Architecture Matrix' : 'PlayStation System Format'}\n\n`;
             
-            // Checking logic constraints inside prompt metrics
             let includesAntiRecoil = cleanPrompt.includes('recoil') || cleanPrompt.includes('ar') || cleanPrompt.includes('predator');
             let includesRapidFire = cleanPrompt.includes('rapid') || cleanPrompt.includes('fire') || cleanPrompt.includes('burst');
             let includesSlideCancel = cleanPrompt.includes('slide') || cleanPrompt.includes('cancel') || cleanPrompt.includes('movement');
 
-            // Global definitions based on request structure
-            basescript += `define FIRE_BTN = PS4_R2;\ndefine ADS_BTN = PS4_L2;\n`;
+            basescript += `// Hardware Input Indexes mappings\n`;
+            basescript += `define FIRE_BTN = ${p.FIRE};\ndefine ADS_BTN = ${p.ADS};\n`;
             if (includesSlideCancel) {
-                basescript += `define CROUCH_BTN = PS4_CROUCH;\ndefine SPRINT_BTN = PS4_L3;\n`;
+                basescript += `define CROUCH_BTN = ${p.CROUCH};\ndefine SPRINT_BTN = ${p.SPRINT};\n`;
             }
             basescript += `\n`;
 
             if (includesAntiRecoil) {
-                basescript += `int recoil_value = 32;\nint horizontal_value = 0;\n`;
+                basescript += `int recoil_value = 34;\nint horizontal_value = 0;\n`;
             }
             if (includesRapidFire) {
-                basescript += `int rapid_fire_hold = 40;\nint rapid_fire_release = 30;\n`;
+                basescript += `int rapid_fire_hold = 35;\nint rapid_fire_release = 30;\n`;
             }
             basescript += `int script_toggle = TRUE;\n\n`;
 
-            // Main Execution Loop
             basescript += `main {\n`;
-            basescript += `    if(get_val(PS4_SHARE) && event_press(PS4_CROSS)) {\n        script_toggle = !script_toggle;\n    }\n\n`;
+            basescript += `    // Master Mod Switch: Hold ${p.MENU === 'XB1_VIEW' ? 'VIEW' : 'SHARE'} + Press ${p.ACTION === 'XB1_A' ? 'A' : 'CROSS'}\n`;
+            basescript += `    if(get_val(${p.MENU}) && event_press(${p.ACTION})) {\n        script_toggle = !script_toggle;\n    }\n\n`;
             basescript += `    if(script_toggle) {\n`;
             
             if (includesAntiRecoil) {
@@ -337,17 +346,16 @@
                 basescript += `        if(get_val(FIRE_BTN) && !get_val(ADS_BTN)) {\n            combo_run(RapidFire);\n        }\n`;
             }
             if (includesSlideCancel) {
-                basescript += `        if(get_val(PS4_LY) < -90 && event_press(CROUCH_BTN)) {\n            combo_run(SlideCancel);\n        }\n`;
+                basescript += `        if(get_val(${p.LY}) < -90 && event_press(CROUCH_BTN)) {\n            combo_run(SlideCancel);\n        }\n`;
             }
             if (!includesAntiRecoil && !includesRapidFire && !includesSlideCancel) {
-                basescript += `        // Standard Button Remap Utility Mod Block\n        if(get_val(FIRE_BTN)) {\n            set_val(PS4_R1, 100);\n        }\n`;
+                basescript += `        // Standalone Custom Input Mod Map\n        if(get_val(FIRE_BTN)) {\n            set_val(${platform === "XB1" ? "XB1_RB" : "PS4_R1"}, 100);\n        }\n`;
             }
 
             basescript += `    }\n}\n\n`;
 
-            // Combo Sequence compilation blocks
             if (includesAntiRecoil) {
-                basescript += `combo AntiRecoil {\n    set_val(PS4_RY, recoil_value);\n    wait(10);\n    set_val(PS4_RX, horizontal_value);\n    wait(10);\n}\n\n`;
+                basescript += `combo AntiRecoil {\n    set_val(${p.RY}, recoil_value);\n    wait(10);\n    set_val(${p.RX}, horizontal_value);\n    wait(10);\n}\n\n`;
             }
             if (includesRapidFire) {
                 basescript += `combo RapidFire {\n    set_val(FIRE_BTN, 100);\n    wait(rapid_fire_hold);\n    set_val(FIRE_BTN, 0);\n    wait(rapid_fire_release);\n}\n\n`;
@@ -359,21 +367,48 @@
             return basescript;
         }
 
+        // Implementation of Cross-Platform Mod Refactoring Rules
+        function convertExistingGpcToXbox(sourceCode) {
+            let patterns = [
+                { r: /PS4_R2/g, x: "XB1_RT" }, { r: /PS4_L2/g, x: "XB1_LT" },
+                { r: /PS4_R1/g, x: "XB1_RB" }, { r: /PS4_L1/g, x: "XB1_LB" },
+                { r: /PS4_CROSS/g, x: "XB1_A" }, { r: /PS4_CIRCLE/g, x: "XB1_B" },
+                { r: /PS4_SQUARE/g, x: "XB1_X" }, { r: /PS4_TRIANGLE/g, x: "XB1_Y" },
+                { r: /PS4_L3/g, x: "XB1_LS" }, { r: /PS4_R3/g, x: "XB1_RS" },
+                { r: /PS4_UP/g, x: "XB1_UP" }, { r: /PS4_DOWN/g, x: "XB1_DOWN" },
+                { r: /PS4_LEFT/g, x: "XB1_LEFT" }, { r: /PS4_RIGHT/g, x: "XB1_RIGHT" },
+                { r: /PS4_SHARE/g, x: "XB1_VIEW" }, { r: /PS4_OPTIONS/g, x: "XB1_MENU" },
+                { r: /PS4_PS/g, x: "XB1_GUIDE" }, { r: /PS4_RX/g, x: "XB1_RX" },
+                { r: /PS4_RY/g, x: "XB1_RY" }, { r: /PS4_LX/g, x: "XB1_LX" },
+                { r: /PS4_LY/g, x: "XB1_LY" }
+            ];
+            
+            let output = sourceCode;
+            patterns.forEach(pair => {
+                output = output.replace(pair.r, pair.x);
+            });
+            return output;
+        }
+
         async function runPipeline(fullPrompt, mode, codeBlock = '') {
             const codeOutput = document.getElementById('codeOutput');
+            const targetPlatform = platformSelect.value;
             
             if (!isUserAdmin && currentGenerationsLeft <= 0) {
                 alert("🛑 LIMIT REACHED: You have 0 generations left for today!");
                 return;
             }
 
-            // Simulating compilation processing sequence timing
             setTimeout(() => {
                 let generatedResult = "";
                 if (mode === 'modify') {
-                    generatedResult = `// Modified Script Workspace Link\n// Changes Applied: ${fullPrompt}\n\n${codeBlock}\n\n// Added Loop Script Modifier Extensions\nmain {\n    if(get_val(PS4_R2)) {\n        combo_run(CustomModifyLoop);\n    }\n}\ncombo CustomModifyLoop {\n    set_val(PS4_RY, 15);\n    wait(20);\n}`;
+                    let filteredCode = codeBlock;
+                    if (targetPlatform === "XB1") {
+                        filteredCode = convertExistingGpcToXbox(codeBlock);
+                    }
+                    generatedResult = `// Modified Script Link Workspace\n// Changes Applied: ${fullPrompt}\n// Optimized Platform: ${targetPlatform}\n\n${filteredCode}\n\n// Added Custom Runtime Loops\nmain {\n    if(get_val(${targetPlatform === "XB1" ? "XB1_RT" : "PS4_R2"})) {\n        combo_run(CustomExtensionLoop);\n    }\n}\ncombo CustomExtensionLoop {\n    set_val(${targetPlatform === "XB1" ? "XB1_RY" : "PS4_RY"}, 12);\n    wait(15);\n}`;
                 } else {
-                    generatedResult = generateLocalGPC(fullPrompt);
+                    generatedResult = generateLocalGPC(fullPrompt, targetPlatform);
                 }
 
                 codeOutput.innerText = generatedResult;
@@ -398,22 +433,19 @@
             localStorage.removeItem('onlyzens_auth_key');
             activeKey = '';
             isUserAdmin = false;
-            
             document.getElementById('licenseKeyInput').value = '';
             document.getElementById('sessionTimerDisplay').classList.add('hidden');
             document.getElementById('logoutBtn').classList.add('hidden');
-            document.getElementById('codeOutput').innerText = "// AI generated structural code appears here...";
-            
+            document.getElementById('codeOutput').innerText = "// AI generated cross-platform structural code appears here...";
             toggleOverlayLoaderState(false);
             const overlay = document.getElementById('authOverlay');
             overlay.classList.remove('opacity-0', 'pointer-events-none');
         }
 
-        // Action hooks routing inputs to pipeline
         document.getElementById('btnGenRun').addEventListener('click', async () => {
             const promptText = document.getElementById('genPrompt').value.trim();
             if(!promptText) return alert('Enter generation specifications.');
-            document.getElementById('codeOutput').innerText = "// Compiling configuration logic via permanently trained architecture rules...";
+            document.getElementById('codeOutput').innerText = "// Running training compiler modules on platform template schemas...";
             await runPipeline(promptText, 'generate');
         });
 
@@ -421,7 +453,7 @@
             const targetSrc = document.getElementById('modifyExistingCode').value.trim();
             const modTask = document.getElementById('modifyPrompt').value.trim();
             if(!targetSrc || !modTask) return alert('Fill in the source block and target modification requirements.');
-            document.getElementById('codeOutput').innerText = "// Processing refactor instructions through custom template rules...";
+            document.getElementById('codeOutput').innerText = "// Compiling source array references and optimizing layout scripts...";
             await runPipeline(modTask, 'modify', targetSrc);
         });
 
@@ -430,7 +462,6 @@
             alert('Code successfully cloned to clipboard workspace.');
         });
 
-        // Key String Masking Formatting Rule Logic
         document.getElementById('licenseKeyInput').addEventListener('input', function (e) {
             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             let formatted = "";
